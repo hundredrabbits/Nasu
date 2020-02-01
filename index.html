@@ -2,12 +2,12 @@
 <html lang='en'>
 <head>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="desktop/assets/main.css">
-    <script type="text/javascript" src="desktop/scripts/lib/source.js"></script>
-    <script type="text/javascript" src="desktop/scripts/editor.js"></script>
-    <script type="text/javascript" src="desktop/scripts/sprite_editor.js"></script>
-    <script type="text/javascript" src="desktop/scripts/tile_editor.js"></script>
-    <script type="text/javascript" src="desktop/scripts/nametable_editor.js"></script>
+    <link rel="stylesheet" href="desktop/sources/assets/main.css">
+    <script type="text/javascript" src="desktop/sources/scripts/lib/source.js"></script>
+    <script type="text/javascript" src="desktop/sources/scripts/editor.js"></script>
+    <script type="text/javascript" src="desktop/sources/scripts/sprite_editor.js"></script>
+    <script type="text/javascript" src="desktop/sources/scripts/tile_editor.js"></script>
+    <script type="text/javascript" src="desktop/sources/scripts/nametable_editor.js"></script>
     <title>6502 Nametable Editor</title>
 </head>
 <body>
@@ -38,7 +38,7 @@
         /// Load up default sprite sheet
 
         const xhr = new XMLHttpRequest()
-        xhr.open('GET', 'desktop/assets/mario.chr')
+        xhr.open('GET', 'desktop/sources/assets/mario.chr')
         xhr.responseType = 'arraybuffer'
 
         xhr.addEventListener('load', function (evt) {
