@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang='en'>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="assets/main.css">
+    <script type="text/javascript" src="scripts/lib/source.js"></script>
+    <script type="text/javascript" src="scripts/editor.js"></script>
+    <script type="text/javascript" src="scripts/sprite_editor.js"></script>
+    <script type="text/javascript" src="scripts/tile_editor.js"></script>
+    <script type="text/javascript" src="scripts/nametable_editor.js"></script>
+    <title>6502 Nametable Editor</title>
+</head>
+<body>
+    <script>
+        'use strict'
+
+        const wrapper = document.createElement('div')
+        const source = new Source()
+
+        const COLORS = ['white', 'red', '#72dec2', 'white']
+        const SPRITESHEET = new Array(512 * 16 * 8).fill(0)
+        const NAMETABLE = new Array(32*30).fill(0)
+
+        const spriteEditor = new SpriteEditor()
+        spriteEditor.install(wrapper)
+
+        const tileEditor = new TileEditor()
+        tileEditor.install(wrapper)
+
+        const nametableEditor = new NametableEditor()
+        nametableEditor.install(wrapper)
+        
+        document.body.appendChild(wrapper)
+        spriteEditor.start()
+        tileEditor.start()
+        nametableEditor.start()
+
+        /// Load up default sprite sheet
+
+        const xhr = new XMLHttpRequest()
+        xhr.open('GET', 'assets/mario.chr')
+        xhr.responseType = 'arraybuffer'
+
+        xhr.addEventListener('load', function (evt) {
+          tileEditor.parse(new Uint8Array(xhr.response))
+        })
+
+        xhr.send()
+    </script>
+</body>
+</html>
