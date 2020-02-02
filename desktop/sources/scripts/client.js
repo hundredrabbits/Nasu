@@ -33,6 +33,21 @@ function Client () {
     this.acels.set('File', 'Export Spritesheet(.chr)', 'CmdOrCtrl+S', () => { this.tileEditor.export() })
     this.acels.set('File', 'Export Nametable(.asm)', 'CmdOrCtrl+Shift+S', () => { this.nametableEditor.export() })
 
+    this.acels.set('Sprite', 'Move Up', 'W', () => { this.spriteEditor.modSelect({ x: 0, y: 1 }) })
+    this.acels.set('Sprite', 'Move Right', 'D', () => { this.spriteEditor.modSelect({ x: 1, y: 0 }) })
+    this.acels.set('Sprite', 'Move Down', 'S', () => { this.spriteEditor.modSelect({ x: 0, y: -1 }) })
+    this.acels.set('Sprite', 'Move Left', 'A', () => { this.spriteEditor.modSelect({ x: -1, y: 0 }) })
+    this.acels.set('Sprite', 'Select Color1', '1', () => { this.spriteEditor.selectColor(0) })
+    this.acels.set('Sprite', 'Select Color2', '2', () => { this.spriteEditor.selectColor(1) })
+    this.acels.set('Sprite', 'Select Color3', '3', () => { this.spriteEditor.selectColor(2) })
+    this.acels.set('Sprite', 'Select Color4', '4', () => { this.spriteEditor.selectColor(3) })
+    this.acels.set('Sprite', 'Erase', 'Backspace', () => { this.spriteEditor.erase() })
+
+    this.acels.set('Tile', 'Move Up', 'ArrowUp', () => { this.tileEditor.modSelect({ x: 0, y: 1 }) })
+    this.acels.set('Tile', 'Move Right', 'ArrowRight', () => { this.tileEditor.modSelect({ x: 1, y: 0 }) })
+    this.acels.set('Tile', 'Move Down', 'ArrowDown', () => { this.tileEditor.modSelect({ x: 0, y: -1 }) })
+    this.acels.set('Tile', 'Move Left', 'ArrowLeft', () => { this.tileEditor.modSelect({ x: -1, y: 0 }) })
+    this.acels.set('Tile', 'Erase', 'Shift+Backspace', () => { this.tileEditor.erase() })
     this.acels.set('View', 'Toggle Guides', 'Tab', () => { this.toggleGuides() })
 
     this.acels.install(window)

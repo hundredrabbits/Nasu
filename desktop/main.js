@@ -12,13 +12,13 @@ app.win = null
 app.on('ready', () => {
   app.win = new BrowserWindow({
     width: 850,
-    height: 610,
+    height: 585,
     minWidth: 380,
     minHeight: 360,
     backgroundColor: '#000',
     icon: path.join(__dirname, { darwin: 'icon.icns', linux: 'icon.png', win32: 'icon.ico' }[process.platform] || 'icon.ico'),
     resizable: true,
-    frame: process.platform !== 'darwin',
+    frame: false,
     skipTaskbar: process.platform === 'darwin',
     autoHideMenuBar: process.platform === 'darwin',
     webPreferences: { zoomFactor: 1.0, nodeIntegration: true, backgroundThrottling: false }

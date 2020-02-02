@@ -4,7 +4,7 @@
 
 /* Main */
 
-body { padding: 5px 15px; margin:30px; background:#000; color:white; overflow:hidden; -webkit-app-region: drag;}
+body { padding: 35px 15px; margin:0px 30px; background:#000; color:white; overflow:hidden; -webkit-app-region: drag;}
 body > div { width:768px; position: relative; height:512px; margin:0px auto; }
 canvas { display: block; border-radius: 2px; image-rendering: pixelated; image-rendering: optimizeSpeed; -webkit-app-region: no-drag; }
 div.wrapper { position: relative; }

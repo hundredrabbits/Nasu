@@ -50,6 +50,21 @@ function TileEditor (screen = { w: 16, h: 16 }) {
     this.update()
   }
 
+  this.modSelect = (mod) => {
+    this.selection = { x: clamp(this.selection.x + mod.x, 0, 3), y: clamp(this.selection.y - mod.y, 0, 3) }
+    this.offset = this.selection.x + (this.selection.y * 4) + (this.page * 16)
+    client.spriteEditor.update()
+    this.update()
+  }
+
+  this.erase = () => {
+    const sheetOffset = (client.tileEditor.offset * 1024)
+    for (let i = 0; i < 1024; i++) {
+      SPRITESHEET[sheetOffset + i] = 0
+    }
+    client.update()
+  }
+
   this.drawTiles = () => {
     // Group us 4x4 clusters
     for (let x = 0; x < 4; x++) {
@@ -133,8 +148,7 @@ function TileEditor (screen = { w: 16, h: 16 }) {
         }
       }
     }
-    client.spriteEditor.update()
-    client.tileEditor.update()
+    client.update()
   }
 
   this.selectPage = (id) => {
@@ -191,4 +205,6 @@ function TileEditor (screen = { w: 16, h: 16 }) {
       pom.click()
     }
   }
+
+  function clamp (v, min, max) { return v < min ? min : v > max ? max : v }
 }

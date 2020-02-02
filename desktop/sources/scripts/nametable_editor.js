@@ -84,7 +84,7 @@ function NametableEditor (screen = { w: 32, h: 32 }) {
         NAMETABLE[id] = parseInt(value.substr(1), 16)
       }
     }
-    this.update()
+    client.update()
   }
 
   this.import = () => {

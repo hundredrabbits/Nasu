@@ -58,6 +58,21 @@ function SpriteEditor (screen = { w: 32, h: 32 }) {
     this.update()
   }
 
+  this.modSelect = (mod) => {
+    this.selection = { x: clamp(this.selection.x + mod.x, 0, 3), y: clamp(this.selection.y - mod.y, 0, 3) }
+    this.update()
+  }
+
+  this.erase = () => {
+    const tileOffset = this.selection.x + (this.selection.y * 4)
+    const pixelOffset = tileOffset * 64
+    const sheetOffset = (client.tileEditor.offset * 1024) + pixelOffset
+    for (let i = 0; i < 64; i++) {
+      SPRITESHEET[sheetOffset + i] = 0
+    }
+    client.update()
+  }
+
   this.drawTiles = () => {
     // Cluster us 4x4 tiles
     for (let x = 0; x < 4; x++) {
@@ -95,4 +110,6 @@ function SpriteEditor (screen = { w: 32, h: 32 }) {
     const tile = Math.floor(pos.x / 8) + (Math.floor(pos.y / 8) * 4)
     return { x: offset.x, y: offset.y, tile: tile }
   }
+
+  function clamp (v, min, max) { return v < min ? min : v > max ? max : v }
 }

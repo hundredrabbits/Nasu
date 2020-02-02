@@ -1,51 +1,35 @@
 <!doctype html>
 <html lang='en'>
 <head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="desktop/sources/assets/main.css">
-    <script type="text/javascript" src="desktop/sources/scripts/lib/source.js"></script>
-    <script type="text/javascript" src="desktop/sources/scripts/editor.js"></script>
-    <script type="text/javascript" src="desktop/sources/scripts/sprite_editor.js"></script>
-    <script type="text/javascript" src="desktop/sources/scripts/tile_editor.js"></script>
-    <script type="text/javascript" src="desktop/sources/scripts/nametable_editor.js"></script>
-    <title>6502 Nametable Editor</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="desktop/sources/assets/main.css">
+  <script type="text/javascript">function require(name){ console.warn('Failed to require '+name) }</script>
+  <script type="text/javascript" src="desktop/sources/scripts/lib/source.js"></script>
+  <script type="text/javascript" src="desktop/sources/scripts/lib/acels.js"></script>
+  <script type="text/javascript" src="desktop/sources/scripts/lib/theme.js"></script>
+  <script type="text/javascript" src="desktop/sources/scripts/client.js"></script>
+  <script type="text/javascript" src="desktop/sources/scripts/editor.js"></script>
+  <script type="text/javascript" src="desktop/sources/scripts/sprite_editor.js"></script>
+  <script type="text/javascript" src="desktop/sources/scripts/tile_editor.js"></script>
+  <script type="text/javascript" src="desktop/sources/scripts/nametable_editor.js"></script>
+  <title>Nasu</title>
 </head>
 <body>
     <script>
-        'use strict'
+    'use strict'
 
-        const wrapper = document.createElement('div')
-        const source = new Source()
+    const COLORS = ['white', 'red', '#72dec2', 'white']
+    const SPRITESHEET = new Array(512 * 16 * 8).fill(0)
+    const NAMETABLE = new Array(32*30).fill(0)
 
-        const COLORS = ['white', 'red', '#72dec2', 'white']
-        const SPRITESHEET = new Array(512 * 16 * 8).fill(0)
-        const NAMETABLE = new Array(32*30).fill(0)
+    const client = new Client()
 
-        const spriteEditor = new SpriteEditor()
-        spriteEditor.install(wrapper)
+    client.install(document.body)
 
-        const tileEditor = new TileEditor()
-        tileEditor.install(wrapper)
-
-        const nametableEditor = new NametableEditor()
-        nametableEditor.install(wrapper)
-        
-        document.body.appendChild(wrapper)
-        spriteEditor.start()
-        tileEditor.start()
-        nametableEditor.start()
-
-        /// Load up default sprite sheet
-
-        const xhr = new XMLHttpRequest()
-        xhr.open('GET', 'desktop/sources/assets/mario.chr')
-        xhr.responseType = 'arraybuffer'
-
-        xhr.addEventListener('load', function (evt) {
-          tileEditor.parse(new Uint8Array(xhr.response))
-        })
-
-        xhr.send()
+    window.addEventListener('load', () => {
+      client.start()
+      client.acels.inject('Nasu')
+    })
     </script>
 </body>
 </html>
