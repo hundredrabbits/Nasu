@@ -52,10 +52,10 @@ function Editor (scale = 1, screen = { w: 32, h: 32 }) {
   this.drawGrid = () => {
     if (client.guides !== true) { return }
     for (var x = 1; x < 32; x++) {
-      this.drawLine({ x: x * 8 * scale, y: 0 }, { x: x * 8 * scale, y: 256 * scale }, 0.5, x % 8 === 0 ? '#555' : x % 4 === 0 ? '#444' : '#222')
+      this.drawLine({ x: x * 8 * scale, y: 0 }, { x: x * 8 * scale, y: 256 * scale }, 0.5, x % 8 === 0 ? client.theme.active.b_high : x % 4 === 0 ? client.theme.active.b_med : client.theme.active.b_low)
     }
     for (var y = 1; y < 32; y++) {
-      this.drawLine({ x: 0, y: y * 8 * scale }, { x: 256 * scale, y: y * 8 * scale }, 0.5, y % 8 === 0 ? '#555' : y % 4 === 0 ? '#444' : '#222')
+      this.drawLine({ x: 0, y: y * 8 * scale }, { x: 256 * scale, y: y * 8 * scale }, 0.5, y % 8 === 0 ? client.theme.active.b_high : y % 4 === 0 ? client.theme.active.b_med : client.theme.active.b_low)
     }
   }
 
@@ -64,7 +64,7 @@ function Editor (scale = 1, screen = { w: 32, h: 32 }) {
     const rect = { x: this.selection.x * 8 * 8, y: this.selection.y * 8 * 8, w: 8 * 8, h: 8 * 8 }
     this.context.beginPath()
     this.context.rect(rect.x + 0.5, rect.y + 0.5, rect.w, rect.h)
-    this.context.strokeStyle = '#fff'
+    this.context.strokeStyle = client.theme.active.b_inv
     this.context.stroke()
   }
 

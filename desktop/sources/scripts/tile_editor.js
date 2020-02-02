@@ -1,6 +1,6 @@
 'use strict'
 
-/* globals SPRITESHEET, COLORS, Editor, client, FileReader, Blob */
+/* globals SPRITESHEET, Editor, client, FileReader, Blob */
 
 function TileEditor (screen = { w: 16, h: 16 }) {
   Editor.call(this, 1)
@@ -93,7 +93,7 @@ function TileEditor (screen = { w: 16, h: 16 }) {
         const id = (cluster * 16) + (x + (y * 8)) + (this.page * 256 * 64)
         if (SPRITESHEET[id] < 1) { continue }
         const pos = { x: offset.x + (x * 2), y: offset.y + (y * 2) }
-        this.drawPixel(pos, 2, COLORS[SPRITESHEET[id]])
+        this.drawPixel(pos, 2, client.getColor(SPRITESHEET[id]))
       }
     }
   }

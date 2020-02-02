@@ -32,3 +32,16 @@ div.interface a.active { border-color: white !important; }
 #nametable_editor div.interface { top: 0px;right: -38px;width: 30px; }
 #nametable_editor div.interface a:nth-child(1) { background-image:url(export_icon.svg); background-position: center;}
 #nametable_editor div.interface a:nth-child(2) { background-image:url(import_icon.svg); background-position: center;}
+
+/* Theme */
+
+body { background-color:var(--background) !important; }
+#sprite_editor div.interface a:nth-child(1) { background:var(--background) !important; border-color:#333; }
+#sprite_editor div.interface a:nth-child(2) { background:var(--f_high) !important; }
+#sprite_editor div.interface a:nth-child(3) { background:var(--f_med) !important; }
+#sprite_editor div.interface a:nth-child(4) { background:var(--f_low) !important; }
+#tile_editor div.interface a:nth-child(1) { background:var(--background) !important; }
+#tile_editor div.interface a:nth-child(2) { background:var(--f_inv) !important; }
+div.interface a { border-color:var(--b_low) !important; }
+div.interface a:hover { border-color: var(--f_inv) !important;}
+div.interface a.active { border-color: var(--f_inv) !important; }

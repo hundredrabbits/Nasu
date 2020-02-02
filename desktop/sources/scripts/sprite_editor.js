@@ -1,6 +1,6 @@
 'use strict'
 
-/* globals SPRITESHEET, COLORS, Editor, client */
+/* globals SPRITESHEET, Editor, client */
 
 function SpriteEditor (screen = { w: 32, h: 32 }) {
   Editor.call(this, 1)
@@ -90,7 +90,7 @@ function SpriteEditor (screen = { w: 32, h: 32 }) {
         const id = (client.tileEditor.offset * 1024) + (tile * 64) + (x + (y * 8))
         if (SPRITESHEET[id] < 1) { continue }
         const pos = { x: ((offset.x * 8) + x) * 8, y: ((offset.y * 8) + y) * 8 }
-        this.drawPixel(pos, 8, COLORS[SPRITESHEET[id]])
+        this.drawPixel(pos, 8, client.getColor(SPRITESHEET[id]))
       }
     }
   }

@@ -17,7 +17,7 @@
   <script>
     'use strict'
 
-    const COLORS = ['white', '#9b72de', '#72dec2', 'white']
+    // const COLORS = ['white', '#9b72de', '#72dec2', 'white']
     const SPRITESHEET = new Array(512 * 16 * 8).fill(0)
     const NAMETABLE = new Array(32*30).fill(0)
 
@@ -36,7 +36,7 @@
       xhr.responseType = 'arraybuffer'
 
       xhr.addEventListener('load', (e) => {
-        this.tileEditor.parse(new Uint8Array(xhr.response))
+        client.tileEditor.parse(new Uint8Array(xhr.response))
       })
 
       xhr.send()

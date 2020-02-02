@@ -1,6 +1,6 @@
 'use strict'
 
-/* globals SPRITESHEET, COLORS, NAMETABLE, Editor, client */
+/* globals SPRITESHEET, NAMETABLE, Editor, client */
 
 function NametableEditor (screen = { w: 32, h: 32 }) {
   Editor.call(this, 2)
@@ -55,7 +55,7 @@ function NametableEditor (screen = { w: 32, h: 32 }) {
         const id = (tile * 64) + (y * 8) + x
         const pos = { x: ((offset.x) + (x * 2)), y: ((offset.y) + (y * 2)) }
         if (SPRITESHEET[id] < 1) { continue }
-        this.drawPixel(pos, this.scale, COLORS[SPRITESHEET[id]])
+        this.drawPixel(pos, this.scale, client.getColor(SPRITESHEET[id]))
       }
     }
   }

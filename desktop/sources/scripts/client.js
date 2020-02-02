@@ -25,7 +25,7 @@ function Client () {
 
     document.body.appendChild(this.el)
 
-    this.theme.default = { background: '#000000', f_high: '#ffffff', f_med: '#777777', f_low: '#444444', f_inv: '#000000', b_high: '#eeeeee', b_med: '#72dec2', b_low: '#444444', b_inv: '#ffb545' }
+    this.theme.default = { background: '#000000', f_high: '#9b72de', f_med: '#72dec2', f_low: '#fff', f_inv: '#ffffff', b_high: '#555555', b_med: '#444444', b_low: '#222222', b_inv: '#ffb545' }
 
     this.acels.set('File', 'New', 'CmdOrCtrl+N', () => { this.reset() })
     this.acels.set('File', 'Import Spritesheet(.chr)', 'CmdOrCtrl+O', () => { this.tileEditor.import() })
@@ -58,6 +58,7 @@ function Client () {
     console.info('Client', 'Starting..')
     console.info(`${this.acels}`)
     this.theme.start()
+    this.theme.onLoad = () => { this.update() }
 
     this.spriteEditor.start()
     this.tileEditor.start()
@@ -78,6 +79,13 @@ function Client () {
   this.toggleGuides = () => {
     this.guides = !this.guides
     this.update()
+  }
+
+  this.getColor = (id) => {
+    if (id === 0) { return this.theme.active.background }
+    if (id === 1) { return this.theme.active.f_high }
+    if (id === 2) { return this.theme.active.f_med }
+    if (id === 3) { return this.theme.active.f_low }
   }
 
   this.update = () => {
