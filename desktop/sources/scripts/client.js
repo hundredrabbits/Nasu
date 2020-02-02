@@ -62,18 +62,6 @@ function Client () {
     this.spriteEditor.start()
     this.tileEditor.start()
     this.nametableEditor.start()
-
-    /// Load up default sprite sheet
-
-    const xhr = new XMLHttpRequest()
-    xhr.open('GET', 'assets/mario.chr')
-    xhr.responseType = 'arraybuffer'
-
-    xhr.addEventListener('load', (e) => {
-      this.tileEditor.parse(new Uint8Array(xhr.response))
-    })
-
-    xhr.send()
   }
 
   this.reset = () => {

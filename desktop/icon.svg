@@ -1,0 +1,6 @@
+<svg class="vector" width="300px" height="300px" xmlns="http://www.w3.org/2000/svg" baseProfile="full" version="1.1" style="width: 300px; height: 300px; stroke: rgb(0, 0, 0); stroke-width: 0; fill: none; stroke-linecap: round; background:black">
+  <rect width="300" height="300" style="fill:rgb(0,0,0)" />
+  <g transform="translate(48 48) scale(0.675)">
+    <path d="M60,240 L60,90 A30,30 0 0,1 90,60 A30,30 0 0,1 120,90 L120,210 M240,60 L240,210 A30,30 0 0,1 210,240 A30,30 0 0,1 180,210 L180,90 M120,90 A30,30 0 0,1 150,60 A30,30 0 0,1 180,90 M180,210 A30,30 0 0,1 150,240 A30,30 0 0,1 120,210" style="stroke-width: 12; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(255, 255, 255); fill: none;"/>
+  </g>
+</svg>
