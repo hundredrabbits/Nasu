@@ -17,7 +17,7 @@ div.interface a.active { border-color: white !important; }
 #sprite_editor { position: absolute; top: 0px; left:0px; }
 #sprite_editor div.interface { width: 30px;top: 0px;left: -30px; }
 #sprite_editor div.interface a:nth-child(1) { background:black; border-color:#333; }
-#sprite_editor div.interface a:nth-child(2) { background:red; }
+#sprite_editor div.interface a:nth-child(2) { background:#9b72de; }
 #sprite_editor div.interface a:nth-child(3) { background:#72dec2; }
 #sprite_editor div.interface a:nth-child(4) { background:white; }
 
