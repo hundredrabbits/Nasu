@@ -1,6 +1,6 @@
 'use strict'
 
-/* globals SPRITESHEET, COLORS, Editor, nametableEditor, tileEditor */
+/* globals SPRITESHEET, COLORS, Editor, client */
 
 function SpriteEditor (screen = { w: 32, h: 32 }) {
   Editor.call(this, 1)
@@ -41,13 +41,13 @@ function SpriteEditor (screen = { w: 32, h: 32 }) {
   }
 
   this.whenMouseUp = (pos) => {
-    tileEditor.update()
-    nametableEditor.update()
+    client.tileEditor.update()
+    client.nametableEditor.update()
   }
 
   this.paint = (pos, value) => {
     const relPos = relativePosition(pos)
-    const relId = (relPos.tile * 64) + ((relPos.y * 8) + relPos.x) + (tileEditor.offset * 1024)
+    const relId = (relPos.tile * 64) + ((relPos.y * 8) + relPos.x) + (client.tileEditor.offset * 1024)
     if (SPRITESHEET[relId] === value) { return }
     SPRITESHEET[relId] = value
     this.update()
@@ -72,7 +72,7 @@ function SpriteEditor (screen = { w: 32, h: 32 }) {
     // Tile is 8x8 pixels
     for (let x = 0; x < 8; x++) {
       for (let y = 0; y < 8; y++) {
-        const id = (tileEditor.offset * 1024) + (tile * 64) + (x + (y * 8))
+        const id = (client.tileEditor.offset * 1024) + (tile * 64) + (x + (y * 8))
         if (SPRITESHEET[id] < 1) { continue }
         const pos = { x: ((offset.x * 8) + x) * 8, y: ((offset.y * 8) + y) * 8 }
         this.drawPixel(pos, 8, COLORS[SPRITESHEET[id]])

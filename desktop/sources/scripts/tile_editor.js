@@ -1,6 +1,6 @@
 'use strict'
 
-/* globals SPRITESHEET, COLORS, Editor, FileReader, Blob, spriteEditor, tileEditor */
+/* globals SPRITESHEET, COLORS, Editor, client, FileReader, Blob */
 
 function TileEditor (screen = { w: 16, h: 16 }) {
   Editor.call(this, 1)
@@ -40,12 +40,12 @@ function TileEditor (screen = { w: 16, h: 16 }) {
   }
 
   this.whenMouseUp = (pos) => {
-    spriteEditor.update()
+    client.spriteEditor.update()
   }
 
   this.select = (pos) => {
     this.selection = { x: Math.floor(pos.x / 8), y: Math.floor(pos.y / 8) }
-    spriteEditor.selection = { x: Math.floor(pos.x / 2) % 4, y: Math.floor(pos.y / 2) % 4 }
+    client.spriteEditor.selection = { x: Math.floor(pos.x / 2) % 4, y: Math.floor(pos.y / 2) % 4 }
     this.offset = Math.floor(pos.x / 8) + (Math.floor(pos.y / 8) * 4) + (this.page * 16)
     this.update()
   }
@@ -86,7 +86,7 @@ function TileEditor (screen = { w: 16, h: 16 }) {
   // IO
 
   this.open = (file) => {
-    if (!file) { console.warn('??'); return }
+    if (!file) { return }
     const start = 0
     const stop = file.size - 1
     const reader = new FileReader()
@@ -100,13 +100,7 @@ function TileEditor (screen = { w: 16, h: 16 }) {
   }
 
   this.import = () => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.onchange = (e) => {
-      const file = e.target.files[0]
-      this.open(file)
-    }
-    input.click()
+    client.source.open('chr', this.open)
   }
 
   this.export = () => {
@@ -139,8 +133,8 @@ function TileEditor (screen = { w: 16, h: 16 }) {
         }
       }
     }
-    spriteEditor.update()
-    tileEditor.update()
+    client.spriteEditor.update()
+    client.tileEditor.update()
   }
 
   this.selectPage = (id) => {

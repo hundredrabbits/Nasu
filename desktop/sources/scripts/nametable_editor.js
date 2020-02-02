@@ -1,6 +1,6 @@
 'use strict'
 
-/* globals SPRITESHEET, COLORS, NAMETABLE, Editor, spriteEditor, tileEditor, source */
+/* globals SPRITESHEET, COLORS, NAMETABLE, Editor, client */
 
 function NametableEditor (screen = { w: 32, h: 32 }) {
   Editor.call(this, 2)
@@ -28,7 +28,7 @@ function NametableEditor (screen = { w: 32, h: 32 }) {
 
   this.paint = (pos, value) => {
     const id = (pos.x / 2) + ((pos.y / 2) * 32)
-    const tile = (tileEditor.offset * 16) + (spriteEditor.selection.x + (4 * spriteEditor.selection.y))
+    const tile = (client.tileEditor.offset * 16) + (client.spriteEditor.selection.x + (4 * client.spriteEditor.selection.y))
     NAMETABLE[id] = tile
     this.update()
   }
@@ -78,7 +78,6 @@ function NametableEditor (screen = { w: 32, h: 32 }) {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim().replace('.db ', '')
       const tiles = line.split(',')
-      console.log(i, '!!!!!!!!!!!!')
       for (const tileId in tiles) {
         const id = (i * tiles.length) + parseInt(tileId)
         const value = tiles[tileId]
@@ -89,11 +88,11 @@ function NametableEditor (screen = { w: 32, h: 32 }) {
   }
 
   this.import = () => {
-    source.open('asm', this.parse)
+    client.source.open('asm', this.parse)
   }
 
   this.export = () => {
-    source.write('background', 'asm', `${this}`, 'text/plain')
+    client.source.write('background', 'asm', `${this}`, 'text/plain')
   }
 
   // Helpers

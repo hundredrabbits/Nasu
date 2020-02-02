@@ -1,5 +1,7 @@
 'use strict'
 
+/* globals client */
+
 function Editor (scale = 1, screen = { w: 32, h: 32 }) {
   this.selection = { x: 0, y: 0 }
 
@@ -48,6 +50,7 @@ function Editor (scale = 1, screen = { w: 32, h: 32 }) {
   }
 
   this.drawGrid = () => {
+    if (client.guides !== true) { return }
     for (var x = 1; x < 32; x++) {
       this.drawLine({ x: x * 8 * scale, y: 0 }, { x: x * 8 * scale, y: 256 * scale }, 0.5, x % 8 === 0 ? '#555' : x % 4 === 0 ? '#444' : '#222')
     }
@@ -57,6 +60,7 @@ function Editor (scale = 1, screen = { w: 32, h: 32 }) {
   }
 
   this.drawGuides = () => {
+    if (client.guides !== true) { return }
     const rect = { x: this.selection.x * 8 * 8, y: this.selection.y * 8 * 8, w: 8 * 8, h: 8 * 8 }
     this.context.beginPath()
     this.context.rect(rect.x + 0.5, rect.y + 0.5, rect.w, rect.h)
