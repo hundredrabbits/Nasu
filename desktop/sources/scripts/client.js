@@ -93,4 +93,22 @@ function Client () {
     this.tileEditor.update()
     this.nametableEditor.update()
   }
+
+  // Events
+
+  window.addEventListener('dragover', (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'copy'
+  })
+
+  window.addEventListener('drop', (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    for (const file of e.dataTransfer.files) {
+      console.log(file.name)
+      if (file.name.indexOf('.chr') > -1) { this.tileEditor.open(file) }
+      if (file.name.indexOf('.asm') > -1) { client.source.read(file, this.nametableEditor.parse) }
+    }
+  })
 }
