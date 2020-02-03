@@ -156,6 +156,7 @@ function TileEditor (screen = { w: 16, h: 16 }) {
     this._page2Button.className = id === 1 ? 'active' : ''
     this.page = id
     this.select({ x: 0, y: 0 })
+    client.update()
   }
 
   this.getTile = (id) => {

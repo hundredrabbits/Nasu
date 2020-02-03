@@ -29,7 +29,7 @@ function NametableEditor (screen = { w: 32, h: 32 }) {
   this.paint = (pos, value) => {
     const id = (pos.x / 2) + ((pos.y / 2) * 32)
     const tile = (client.tileEditor.offset * 16) + (client.spriteEditor.selection.x + (4 * client.spriteEditor.selection.y))
-    NAMETABLE[id] = tile
+    NAMETABLE[id] = tile % 256
     this.update()
   }
 
@@ -52,7 +52,7 @@ function NametableEditor (screen = { w: 32, h: 32 }) {
     // Tile 8x8
     for (let x = 0; x < 8; x++) {
       for (let y = 0; y < 8; y++) {
-        const id = (tile * 64) + (y * 8) + x
+        const id = (tile * 64) + (y * 8) + x + (client.tileEditor.page * 16384)
         const pos = { x: ((offset.x) + (x * 2)), y: ((offset.y) + (y * 2)) }
         if (SPRITESHEET[id] < 1) { continue }
         this.drawPixel(pos, this.scale, client.getColor(SPRITESHEET[id]))

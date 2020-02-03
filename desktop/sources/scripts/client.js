@@ -48,7 +48,8 @@ function Client () {
     this.acels.set('Tile', 'Move Down', 'ArrowDown', () => { this.tileEditor.modSelect({ x: 0, y: -1 }) })
     this.acels.set('Tile', 'Move Left', 'ArrowLeft', () => { this.tileEditor.modSelect({ x: -1, y: 0 }) })
     this.acels.set('Tile', 'Erase', 'Shift+Backspace', () => { this.tileEditor.erase() })
-    this.acels.set('View', 'Toggle Guides', 'Tab', () => { this.toggleGuides() })
+    this.acels.set('Tile', 'Toggle Page', 'Tab', () => { this.tileEditor.selectPage(this.tileEditor.page === 1 ? 0 : 1) })
+    this.acels.set('View', 'Toggle Guides', 'H', () => { this.toggleGuides() })
 
     this.acels.install(window)
     this.acels.pipe(this.commander)
