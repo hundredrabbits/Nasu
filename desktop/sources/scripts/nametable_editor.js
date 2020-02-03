@@ -104,7 +104,7 @@ function NametableEditor (screen = { w: 32, h: 32 }) {
       txt += '  .db '
       for (let x = size.x; x < size.w + size.x; x++) {
         const id = x + (y * 32)
-        txt += `${toHex(NAMETABLE[id])}${(x < 32 - 1 ? ',' : '')}`
+        txt += `${toHex(NAMETABLE[id])}${(x < size.w + size.x - 1 ? ',' : '')}`
       }
       txt += '\n'
     }
