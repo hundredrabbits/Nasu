@@ -5,6 +5,7 @@
 function NametableEditor (screen = { w: 32, h: 32 }) {
   Editor.call(this, 2)
 
+  this.selection = null
   this._wrapper.id = 'nametable_editor'
   this._importButton = document.createElement('a')
   this._exportButton = document.createElement('a')
@@ -16,14 +17,33 @@ function NametableEditor (screen = { w: 32, h: 32 }) {
     this._exportButton.onclick = this.export
   }
 
-  this.whenMouseDown = (pos) => {
-    this.paint(pos, this.brush)
-    this.select(pos)
+  this.whenMouseDown = (pos, special) => {
+    if (special !== true) {
+      this.paint(pos, this.brush)
+      this.unselect()
+    } else {
+      const size = { x: pos.x / 8, y: pos.y / 8 }
+      this.selection = { x: size.x, y: size.y, w: 2, h: 2, special: true }
+      this.update()
+    }
   }
 
-  this.whenMouseMove = (pos) => {
-    this.paint(pos, this.brush)
-    this.select(pos)
+  this.whenMouseMove = (pos, special) => {
+    if (!this.selection || this.selection.special !== true) {
+      this.paint(pos, this.brush)
+    } else {
+      const size = { x: pos.x / 8, y: pos.y / 8 }
+      this.selection.w = clamp((((pos.x / 8) + 0.25) - this.selection.x) * 8, 2, 20)
+      this.selection.h = clamp((((pos.y / 8) + 0.25) - this.selection.y) * 8, 2, 20)
+      this.update()
+    }
+  }
+
+  this.whenMouseUp = (pos, special) => {
+    if (!this.selection || this.selection.special !== true) {
+      return
+    }
+    this.selection.special = false
   }
 
   this.paint = (pos, value) => {
@@ -34,7 +54,12 @@ function NametableEditor (screen = { w: 32, h: 32 }) {
   }
 
   this.select = (pos) => {
-    this.selection = { x: Math.floor(pos.x / 8), y: Math.floor(pos.y / 8) }
+    this.selection = { x: Math.floor(pos.x / 8), y: Math.floor(pos.y / 8), special: false }
+    this.update()
+  }
+
+  this.unselect = () => {
+    this.selection = null
     this.update()
   }
 
@@ -73,6 +98,19 @@ function NametableEditor (screen = { w: 32, h: 32 }) {
     return txt
   }
 
+  this.toStringSelection = (size) => {
+    let txt = 'selection:\n'
+    for (let y = size.y; y < size.h + size.y; y++) {
+      txt += '  .db '
+      for (let x = size.x; x < size.w + size.x; x++) {
+        const id = x + (y * 32)
+        txt += `${toHex(NAMETABLE[id])}${(x < 32 - 1 ? ',' : '')}`
+      }
+      txt += '\n'
+    }
+    return txt
+  }
+
   this.parse = (file, data) => {
     const lines = data.split('\n').filter((item) => { return item.indexOf('.db ') > -1 })
     for (let i = 0; i < lines.length; i++) {
@@ -92,7 +130,12 @@ function NametableEditor (screen = { w: 32, h: 32 }) {
   }
 
   this.export = () => {
-    client.source.write('background', 'asm', `${this}`, 'text/plain')
+    if (this.selection) {
+      const size = { x: this.selection.x * 4, y: this.selection.y * 4, w: this.selection.w / 2, h: this.selection.h / 2 }
+      client.source.write('selection', 'asm', `${this.toStringSelection(size)}`, 'text/plain')
+    } else {
+      client.source.write('background', 'asm', `${this}`, 'text/plain')
+    }
   }
 
   // Helpers
@@ -100,4 +143,6 @@ function NametableEditor (screen = { w: 32, h: 32 }) {
   function toHex (int) {
     return '$' + (int % 128 || 0).toString(16).padStart(2, '0')
   }
+
+  function clamp (v, min, max) { return v < min ? min : v > max ? max : v }
 }

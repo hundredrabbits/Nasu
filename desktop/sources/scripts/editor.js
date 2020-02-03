@@ -26,6 +26,7 @@ function Editor (scale = 1, screen = { w: 32, h: 32 }) {
     this._canvas.onmousedown = this.onMouseDown
     this._canvas.onmousemove = this.onMouseMove
     this._canvas.onmouseup = this.onMouseUp
+    this._canvas.oncontextmenu = (e) => { e.preventDefault(); event.stopPropagation() }
 
     this.installInterface(this._interface)
   }
@@ -60,8 +61,8 @@ function Editor (scale = 1, screen = { w: 32, h: 32 }) {
   }
 
   this.drawGuides = () => {
-    if (client.guides !== true) { return }
-    const rect = { x: this.selection.x * 8 * 8, y: this.selection.y * 8 * 8, w: 8 * 8, h: 8 * 8 }
+    if (client.guides !== true || !this.selection) { return }
+    const rect = { x: this.selection.x * 8 * 8, y: this.selection.y * 8 * 8, w: (this.selection.w || 8) * 8, h: (this.selection.h || 8) * 8 }
     this.context.beginPath()
     this.context.rect(rect.x + 0.5, rect.y + 0.5, rect.w, rect.h)
     this.context.strokeStyle = client.theme.active.b_inv
@@ -92,7 +93,7 @@ function Editor (scale = 1, screen = { w: 32, h: 32 }) {
   this.onMouseDown = (e) => {
     this.isMouseDown = true
     const tilepos = tilePosition({ x: e.layerX, y: e.layerY }, this.scale)
-    this.whenMouseDown(tilepos)
+    this.whenMouseDown(tilepos, e.button !== 0 || e.which !== 1)
     this.mouseLastPos = tilepos
   }
 
@@ -100,22 +101,22 @@ function Editor (scale = 1, screen = { w: 32, h: 32 }) {
     if (!this.isMouseDown) { return }
     const tilepos = tilePosition({ x: e.layerX, y: e.layerY }, this.scale)
     if (positionsEqual(tilepos, this.mouseLastPos)) { return }
-    this.whenMouseMove(tilepos)
+    this.whenMouseMove(tilepos, e.button !== 0 || e.which !== 1)
     this.mouseLastPos = tilepos
   }
 
   this.onMouseUp = (e) => {
     this.isMouseDown = false
     const tilepos = tilePosition({ x: e.layerX, y: e.layerY }, this.scale)
-    this.whenMouseUp(tilepos)
+    this.whenMouseUp(tilepos, e.button !== 0 || e.which !== 1)
     this.mouseLastPos = null
   }
 
   // Mouse Overrides
 
-  this.whenMouseDown = (pos) => { }
-  this.whenMouseMove = (pos) => { }
-  this.whenMouseUp = (pos) => { }
+  this.whenMouseDown = (pos, special) => { }
+  this.whenMouseMove = (pos, special) => { }
+  this.whenMouseUp = (pos, special) => { }
 
   // Helpers
 
