@@ -32,7 +32,6 @@ function NametableEditor (screen = { w: 32, h: 32 }) {
     if (!this.selection || this.selection.special !== true) {
       this.paint(pos, this.brush)
     } else {
-      const size = { x: pos.x / 8, y: pos.y / 8 }
       this.selection.w = clamp((((pos.x / 8) + 0.25) - this.selection.x) * 8, 2, 20)
       this.selection.h = clamp((((pos.y / 8) + 0.25) - this.selection.y) * 8, 2, 20)
       this.update()

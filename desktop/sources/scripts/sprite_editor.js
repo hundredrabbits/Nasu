@@ -30,17 +30,19 @@ function SpriteEditor (screen = { w: 32, h: 32 }) {
     this.selectColor(0)
   }
 
-  this.whenMouseDown = (pos) => {
+  this.whenMouseDown = (pos, special) => {
+    if (special !== true) {
+      this.paint(pos, this.brush)
+    }
+    this.select(pos)
+  }
+
+  this.whenMouseMove = (pos, special) => {
     this.paint(pos, this.brush)
     this.select(pos)
   }
 
-  this.whenMouseMove = (pos) => {
-    this.paint(pos, this.brush)
-    this.select(pos)
-  }
-
-  this.whenMouseUp = (pos) => {
+  this.whenMouseUp = (pos, special) => {
     client.tileEditor.update()
     client.nametableEditor.update()
   }

@@ -26,7 +26,7 @@ function Editor (scale = 1, screen = { w: 32, h: 32 }) {
     this._canvas.onmousedown = this.onMouseDown
     this._canvas.onmousemove = this.onMouseMove
     this._canvas.onmouseup = this.onMouseUp
-    this._canvas.oncontextmenu = (e) => { e.preventDefault(); event.stopPropagation() }
+    this._canvas.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation() }
 
     this.installInterface(this._interface)
   }
