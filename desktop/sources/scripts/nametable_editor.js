@@ -140,7 +140,7 @@ function NametableEditor (screen = { w: 32, h: 32 }) {
   // Helpers
 
   function toHex (int) {
-    return '$' + (int % 128 || 0).toString(16).padStart(2, '0')
+    return '$' + (int % 256 || 0).toString(16).padStart(2, '0')
   }
 
   function clamp (v, min, max) { return v < min ? min : v > max ? max : v }
