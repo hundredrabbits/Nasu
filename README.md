@@ -16,6 +16,14 @@ npm install
 npm start
 ```
 
+## FAQs
+
+A few design decisions rely on the target platform and its limitations, here are a few explanations.
+
+> Why can't I draw on the lower 2 rows?
+
+They are restricted, the NES can only display up to 32x30 sprites, the data located at that location in memory is used to store the background attributes. 
+
 ## Extras
 
 - This application supports the [Ecosystem Theme](https://github.com/hundredrabbits/Themes).
