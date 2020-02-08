@@ -38,20 +38,17 @@ function Client () {
     this.acels.add('Edit', 'copy')
     this.acels.add('Edit', 'paste')
 
-    this.acels.set('Sprite', 'Move Up', 'W', () => { this.modSelect({ x: 0, y: 2 }) })
-    this.acels.set('Sprite', 'Move Right', 'D', () => { this.modSelect({ x: 2, y: 0 }) })
-    this.acels.set('Sprite', 'Move Down', 'S', () => { this.modSelect({ x: 0, y: -2 }) })
-    this.acels.set('Sprite', 'Move Left', 'A', () => { this.modSelect({ x: -2, y: 0 }) })
+    this.acels.set('Select', 'Move Up', 'W', () => { this.modSelect({ x: 0, y: 2 }) })
+    this.acels.set('Select', 'Move Right', 'D', () => { this.modSelect({ x: 2, y: 0 }) })
+    this.acels.set('Select', 'Move Down', 'S', () => { this.modSelect({ x: 0, y: -2 }) })
+    this.acels.set('Select', 'Move Left', 'A', () => { this.modSelect({ x: -2, y: 0 }) })
+
     this.acels.set('Sprite', 'Select Color1', '1', () => { this.spriteEditor.selectColor(0) })
     this.acels.set('Sprite', 'Select Color2', '2', () => { this.spriteEditor.selectColor(1) })
     this.acels.set('Sprite', 'Select Color3', '3', () => { this.spriteEditor.selectColor(2) })
     this.acels.set('Sprite', 'Select Color4', '4', () => { this.spriteEditor.selectColor(3) })
     this.acels.set('Sprite', 'Erase', 'Backspace', () => { this.spriteEditor.erase() })
 
-    this.acels.set('Tile', 'Move Up', 'ArrowUp', () => { this.modSelect({ x: 0, y: 1 }) })
-    this.acels.set('Tile', 'Move Right', 'ArrowRight', () => { this.modSelect({ x: 1, y: 0 }) })
-    this.acels.set('Tile', 'Move Down', 'ArrowDown', () => { this.modSelect({ x: 0, y: -1 }) })
-    this.acels.set('Tile', 'Move Left', 'ArrowLeft', () => { this.modSelect({ x: -1, y: 0 }) })
     this.acels.set('Tile', 'Erase', 'Shift+Backspace', () => { this.tileEditor.erase() })
     this.acels.set('Tile', 'Toggle Page', 'Tab', () => { this.tileEditor.selectPage(this.tileEditor.page === 1 ? 0 : 1) })
     this.acels.set('View', 'Toggle Guides', 'H', () => { this.toggleGuides() })
@@ -112,6 +109,20 @@ function Client () {
     this.nametableEditor.update()
   }
 
+  this.inject = (origin, tuples) => {
+    let id = origin * 64
+    for (let i = 0; i < 8; i++) {
+      for (let j = 7; j >= 0; j--) {
+        const mask = 0x1
+        const channel1 = tuples[i]
+        const channel2 = tuples[i + 8]
+        const color = ((channel1 >>> j) & mask) + (((channel2 >>> j) & mask) << 1)
+        SPRITESHEET[id] = color
+        id++
+      }
+    }
+  }
+
   // Events
 
   window.addEventListener('dragover', (e) => {
@@ -133,15 +144,27 @@ function Client () {
   document.oncopy = (e) => {
     const tileData = this.tileEditor.getTile(this.selection)
     const tileBin = tuples2bin(tile2Tuples(tileData))
-    console.log(tileBin)
+    const tileStr = bin2str(tileBin)
+    e.clipboardData.setData('text/plain', tileStr)
+    e.preventDefault()
+    console.log(tileStr)
   }
 
   document.oncut = (e) => {
-
+    const tileData = this.tileEditor.getTile(this.selection)
+    const tileBin = tuples2bin(tile2Tuples(tileData))
+    const tileStr = bin2str(tileBin)
+    e.clipboardData.setData('text/plain', tileStr)
+    e.preventDefault()
+    this.spriteEditor.erase()
+    console.log(tileStr)
   }
 
   document.onpaste = (e) => {
-
+    const data = e.clipboardData.getData('text/plain').trim()
+    this.inject(this.selection, bin2tuples(data))
+    e.preventDefault()
+    this.update()
   }
 }
 
@@ -172,6 +195,26 @@ function tuples2bin (tuples) {
     byteArray[y + 8] = byteChannel2
   }
   return byteArray
+}
+
+function bin2str (bin) {
+  let str = ''
+  for (const id in bin) {
+    const int = bin[id]
+    const hex = (int < 16 ? '0' : '') + int.toString(16)
+    str += `${hex}${id % 2 == 1 ? ' ' : ''}`
+  }
+  return str.trim()
+}
+
+function bin2tuples (bin) {
+  const arr = new Array()
+  const str = bin.replace(/ /g, '').trim()
+  for (var i = 0; i < 32; i += 2) {
+    const hex = str.substr(i, 2)
+    arr[i / 2] = parseInt(hex, 16)
+  }
+  return arr
 }
 
 function clamp (v, min, max) { return v < min ? min : v > max ? max : v }
