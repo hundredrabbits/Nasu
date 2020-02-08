@@ -34,6 +34,10 @@ function Client () {
     this.acels.set('File', 'Export Spritesheet(.chr)', 'CmdOrCtrl+S', () => { this.tileEditor.export() })
     this.acels.set('File', 'Export Nametable(.asm)', 'CmdOrCtrl+Shift+S', () => { this.nametableEditor.export() })
 
+    this.acels.add('Edit', 'cut')
+    this.acels.add('Edit', 'copy')
+    this.acels.add('Edit', 'paste')
+
     this.acels.set('Sprite', 'Move Up', 'W', () => { this.modSelect({ x: 0, y: 2 }) })
     this.acels.set('Sprite', 'Move Right', 'D', () => { this.modSelect({ x: 2, y: 0 }) })
     this.acels.set('Sprite', 'Move Down', 'S', () => { this.modSelect({ x: 0, y: -2 }) })
@@ -126,5 +130,48 @@ function Client () {
     }
   })
 
-  function clamp (v, min, max) { return v < min ? min : v > max ? max : v }
+  document.oncopy = (e) => {
+    const tileData = this.tileEditor.getTile(this.selection)
+    const tileBin = tuples2bin(tile2Tuples(tileData))
+    console.log(tileBin)
+  }
+
+  document.oncut = (e) => {
+
+  }
+
+  document.onpaste = (e) => {
+
+  }
 }
+
+function tile2Tuples (tile) {
+  const buff = new Array(64)
+  for (let i = 0; i < 64; i++) {
+    buff[i] = color2Tuple(tile[i])
+  }
+  return buff
+}
+
+function color2Tuple (color) {
+  return color === 0 ? [0x0, 0x0] : color === 1 ? [0x1, 0x0] : color === 2 ? [0x0, 0x1] : [0x1, 0x1]
+}
+
+function tuples2bin (tuples) {
+  const byteArray = new Uint8Array(16)
+  for (let y = 0; y < 8; y++) {
+    let byteChannel1 = 0x00
+    let byteChannel2 = 0x00
+    for (let x = 0; x < 8; x++) {
+      const id = x + (y * 8)
+      const tup = tuples[id]
+      byteChannel1 = (byteChannel1 << 1 | tup[0])
+      byteChannel2 = (byteChannel2 << 1 | tup[1])
+    }
+    byteArray[y] = byteChannel1
+    byteArray[y + 8] = byteChannel2
+  }
+  return byteArray
+}
+
+function clamp (v, min, max) { return v < min ? min : v > max ? max : v }

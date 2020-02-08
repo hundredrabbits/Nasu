@@ -1,6 +1,6 @@
 'use strict'
 
-/* globals SPRITESHEET, Editor, client, FileReader, Blob */
+/* globals SPRITESHEET, Editor, client, FileReader, Blob, tuples2bin, tile2Tuples */
 
 function TileEditor (screen = { w: 16, h: 16 }) {
   Editor.call(this, 1)
@@ -159,35 +159,6 @@ function TileEditor (screen = { w: 16, h: 16 }) {
 
   this.getTile = (id) => {
     return SPRITESHEET.slice(id * 64, (id * 64) + 64)
-  }
-
-  function tile2Tuples (tile) {
-    const buff = new Array(64)
-    for (let i = 0; i < 64; i++) {
-      buff[i] = color2Tuple(tile[i])
-    }
-    return buff
-  }
-
-  function color2Tuple (color) {
-    return color === 0 ? [0x0, 0x0] : color === 1 ? [0x1, 0x0] : color === 2 ? [0x0, 0x1] : [0x1, 0x1]
-  }
-
-  function tuples2bin (tuples) {
-    const byteArray = new Uint8Array(16)
-    for (let y = 0; y < 8; y++) {
-      let byteChannel1 = 0x00
-      let byteChannel2 = 0x00
-      for (let x = 0; x < 8; x++) {
-        const id = x + (y * 8)
-        const tup = tuples[id]
-        byteChannel1 = (byteChannel1 << 1 | tup[0])
-        byteChannel2 = (byteChannel2 << 1 | tup[1])
-      }
-      byteArray[y] = byteChannel1
-      byteArray[y + 8] = byteChannel2
-    }
-    return byteArray
   }
 
   function download (filename, byteArray, type) {
