@@ -34,41 +34,38 @@ function SpriteEditor (screen = { w: 32, h: 32 }) {
     if (special !== true) {
       this.paint(pos, this.brush)
     }
-    this.select(pos)
+    const tileOffset = Math.floor(client.selection / 16)
+    const id = (tileOffset * 16) + Math.floor(pos.x / 8) + (Math.floor(pos.y / 8) * 4)
+    client.select(id)
+    this.update()
   }
 
   this.whenMouseMove = (pos, special) => {
-    this.paint(pos, this.brush)
-    this.select(pos)
+    if (special !== true) {
+      this.paint(pos, this.brush)
+    }
+    const tileOffset = Math.floor(client.selection / 16)
+    const id = (tileOffset * 16) + Math.floor(pos.x / 8) + (Math.floor(pos.y / 8) * 4)
+    client.select(id)
+    this.update()
   }
 
   this.whenMouseUp = (pos, special) => {
-    client.tileEditor.update()
-    client.nametableEditor.update()
+    client.update()
   }
 
   this.paint = (pos, value) => {
+    const tileOffset = Math.floor(client.selection / 16)
     const relPos = relativePosition(pos)
-    const relId = (relPos.tile * 64) + ((relPos.y * 8) + relPos.x) + (client.tileEditor.offset * 1024)
+    const relId = (relPos.tile * 64) + ((relPos.y * 8) + relPos.x) + (tileOffset * 1024)
     if (SPRITESHEET[relId] === value) { return }
     SPRITESHEET[relId] = value
-    this.update()
-  }
-
-  this.select = (pos) => {
-    this.selection = { x: Math.floor(pos.x / 8), y: Math.floor(pos.y / 8) }
-    this.update()
-  }
-
-  this.modSelect = (mod) => {
-    this.selection = { x: clamp(this.selection.x + mod.x, 0, 3), y: clamp(this.selection.y - mod.y, 0, 3) }
-    this.update()
   }
 
   this.erase = () => {
-    const tileOffset = this.selection.x + (this.selection.y * 4)
-    const pixelOffset = tileOffset * 64
-    const sheetOffset = (client.tileEditor.offset * 1024) + pixelOffset
+    const tileOffset = Math.floor(client.selection / 16)
+    const pixelOffset = client.selection * 64
+    const sheetOffset = (tileOffset * 1024) + pixelOffset
     for (let i = 0; i < 64; i++) {
       SPRITESHEET[sheetOffset + i] = 0
     }
@@ -86,15 +83,22 @@ function SpriteEditor (screen = { w: 32, h: 32 }) {
   }
 
   this.drawTile = (tile, offset) => {
+    const tileOffset = Math.floor(client.selection / 16)
     // Tile is 8x8 pixels
     for (let x = 0; x < 8; x++) {
       for (let y = 0; y < 8; y++) {
-        const id = (client.tileEditor.offset * 1024) + (tile * 64) + (x + (y * 8))
+        const id = (tileOffset * 1024) + (tile * 64) + (x + (y * 8))
         if (SPRITESHEET[id] < 1) { continue }
         const pos = { x: ((offset.x * 8) + x) * 8, y: ((offset.y * 8) + y) * 8 }
         this.drawPixel(pos, 8, client.getColor(SPRITESHEET[id]))
       }
     }
+  }
+
+  this.drawGuides = () => {
+    if (client.guides !== true || client.selection === null) { return }
+    const rect = { x: (client.selection % 4) * 64, y: (Math.floor(client.selection / 4) % 4) * 64, w: 64, h: 64 }
+    this.drawRect(rect, client.theme.active.b_inv)
   }
 
   this.selectColor = (id) => {
@@ -112,6 +116,4 @@ function SpriteEditor (screen = { w: 32, h: 32 }) {
     const tile = Math.floor(pos.x / 8) + (Math.floor(pos.y / 8) * 4)
     return { x: offset.x, y: offset.y, tile: tile }
   }
-
-  function clamp (v, min, max) { return v < min ? min : v > max ? max : v }
 }

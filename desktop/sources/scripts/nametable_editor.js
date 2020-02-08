@@ -47,8 +47,7 @@ function NametableEditor (screen = { w: 32, h: 32 }) {
 
   this.paint = (pos, value) => {
     const id = (pos.x / 2) + ((pos.y / 2) * 32)
-    const tile = (client.tileEditor.offset * 16) + (client.spriteEditor.selection.x + (4 * client.spriteEditor.selection.y))
-    NAMETABLE[id] = tile % 256
+    NAMETABLE[id] = client.selection % 256
     this.update()
   }
 
@@ -82,6 +81,15 @@ function NametableEditor (screen = { w: 32, h: 32 }) {
         this.drawPixel(pos, this.scale, client.getColor(SPRITESHEET[id]))
       }
     }
+  }
+
+  this.drawGuides = () => {
+    if (client.guides !== true || !this.selection) { return }
+    const rect = { x: this.selection.x * 8 * 8, y: this.selection.y * 8 * 8, w: (this.selection.w || 8) * 8, h: (this.selection.h || 8) * 8 }
+    this.context.beginPath()
+    this.context.rect(rect.x + 0.5, rect.y + 0.5, rect.w, rect.h)
+    this.context.strokeStyle = client.theme.active.b_inv
+    this.context.stroke()
   }
 
   this.toString = () => {

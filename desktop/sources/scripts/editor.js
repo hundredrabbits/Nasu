@@ -3,8 +3,6 @@
 /* globals client */
 
 function Editor (scale = 1, screen = { w: 32, h: 32 }) {
-  this.selection = { x: 0, y: 0 }
-
   this.scale = scale
   this._wrapper = document.createElement('div')
   this._wrapper.className = 'wrapper'
@@ -60,15 +58,6 @@ function Editor (scale = 1, screen = { w: 32, h: 32 }) {
     }
   }
 
-  this.drawGuides = () => {
-    if (client.guides !== true || !this.selection) { return }
-    const rect = { x: this.selection.x * 8 * 8, y: this.selection.y * 8 * 8, w: (this.selection.w || 8) * 8, h: (this.selection.h || 8) * 8 }
-    this.context.beginPath()
-    this.context.rect(rect.x + 0.5, rect.y + 0.5, rect.w, rect.h)
-    this.context.strokeStyle = client.theme.active.b_inv
-    this.context.stroke()
-  }
-
   this.drawPixel = (pos, size = 1, color = 'red') => {
     this.context.beginPath()
     this.context.rect(pos.x, pos.y, size, size)
@@ -80,7 +69,13 @@ function Editor (scale = 1, screen = { w: 32, h: 32 }) {
     this.context.beginPath()
     this.context.moveTo(a.x + 0.5, a.y + 0.5)
     this.context.lineTo(b.x + 0.5, b.y + 0.5)
+    this.context.strokeStyle = color
+    this.context.stroke()
+  }
 
+  this.drawRect = (rect, color) => {
+    this.context.beginPath()
+    this.context.rect(rect.x + 0.5, rect.y + 0.5, rect.w, rect.h)
     this.context.strokeStyle = color
     this.context.stroke()
   }
@@ -119,6 +114,19 @@ function Editor (scale = 1, screen = { w: 32, h: 32 }) {
   this.whenMouseUp = (pos, special) => { }
 
   // Helpers
+
+  this.posToId = (pos) => {
+    const blockId = Math.floor(pos.x / 8) + (Math.floor(pos.y / 8) * 4)
+    const tileId = (Math.floor(pos.x / 2) % 4) + ((Math.floor(pos.y / 2) % 4) * 4)
+    return (blockId * 16) + tileId
+  }
+
+  this.idToPos = (id) => {
+    const blockId = Math.floor(id / 16)
+    const blockRect = { x: (blockId % 4) * 64, y: Math.floor(blockId / 4) * 64 }
+    const tileRect = { x: blockRect.x + (client.selection % 4) * 16, y: blockRect.y + (Math.floor(id / 4) * 16) % 64 }
+    return { x: 2 * Math.floor(tileRect.x / 16), y: 2 * Math.floor(tileRect.y / 16) }
+  }
 
   function tilePosition (pos, scale) {
     return { x: Math.floor(pos.x / 8 / scale) * scale, y: Math.floor(pos.y / 8 / scale) * scale }

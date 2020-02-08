@@ -32,29 +32,19 @@ function TileEditor (screen = { w: 16, h: 16 }) {
   }
 
   this.whenMouseDown = (pos) => {
-    this.select(pos, this.brush)
+    client.select(this.posToId(pos))
+    this.update()
+    client.spriteEditor.update()
   }
 
   this.whenMouseMove = (pos) => {
-    this.select(pos, this.brush)
+    client.select(this.posToId(pos))
+    this.update()
+    client.spriteEditor.update()
   }
 
   this.whenMouseUp = (pos) => {
-    client.spriteEditor.update()
-  }
-
-  this.select = (pos) => {
-    this.selection = { x: Math.floor(pos.x / 8), y: Math.floor(pos.y / 8) }
-    client.spriteEditor.selection = { x: Math.floor(pos.x / 2) % 4, y: Math.floor(pos.y / 2) % 4 }
-    this.offset = Math.floor(pos.x / 8) + (Math.floor(pos.y / 8) * 4) + (this.page * 16)
-    this.update()
-  }
-
-  this.modSelect = (mod) => {
-    this.selection = { x: clamp(this.selection.x + mod.x, 0, 3), y: clamp(this.selection.y - mod.y, 0, 3) }
-    this.offset = this.selection.x + (this.selection.y * 4) + (this.page * 16)
-    client.spriteEditor.update()
-    this.update()
+    client.update()
   }
 
   this.erase = () => {
@@ -96,6 +86,15 @@ function TileEditor (screen = { w: 16, h: 16 }) {
         this.drawPixel(pos, 2, client.getColor(SPRITESHEET[id]))
       }
     }
+  }
+
+  this.drawGuides = () => {
+    if (client.guides !== true || client.selection === null) { return }
+    const blockId = Math.floor(client.selection / 16)
+    const blockRect = { x: (blockId % 4) * 64, y: Math.floor(blockId / 4) * 64, w: 64, h: 64 }
+    this.drawRect(blockRect, client.theme.active.b_inv)
+    const tileRect = { x: blockRect.x + (client.selection % 4) * 16, y: blockRect.y + (Math.floor(client.selection / 4) * 16) % 64, w: 16, h: 16 }
+    this.drawRect(tileRect, client.theme.active.b_inv)
   }
 
   // IO
@@ -155,7 +154,6 @@ function TileEditor (screen = { w: 16, h: 16 }) {
     this._page1Button.className = id === 0 ? 'active' : ''
     this._page2Button.className = id === 1 ? 'active' : ''
     this.page = id
-    this.select({ x: 0, y: 0 })
     client.update()
   }
 
@@ -206,6 +204,4 @@ function TileEditor (screen = { w: 16, h: 16 }) {
       pom.click()
     }
   }
-
-  function clamp (v, min, max) { return v < min ? min : v > max ? max : v }
 }
