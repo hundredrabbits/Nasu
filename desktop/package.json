@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "electron": "^7.1.11",
-    "electron-packager": "^14.2.0"
+    "electron-packager": "^14.2.1"
   },
   "dependencies": {
     "node-osc": "^4.1.4"

@@ -6,7 +6,6 @@ function TileEditor (screen = { w: 16, h: 16 }) {
   Editor.call(this, 1)
 
   this.page = 0
-  this.offset = 0
 
   this._wrapper.id = 'tile_editor'
   this._page1Button = document.createElement('a')
@@ -48,7 +47,7 @@ function TileEditor (screen = { w: 16, h: 16 }) {
   }
 
   this.erase = () => {
-    const sheetOffset = (client.tileEditor.offset * 1024)
+    const sheetOffset = (Math.floor(client.selection / 16) * 1024) + (this.page * 1024 * 16)
     for (let i = 0; i < 1024; i++) {
       SPRITESHEET[sheetOffset + i] = 0
     }
@@ -133,8 +132,8 @@ function TileEditor (screen = { w: 16, h: 16 }) {
   }
 
   this.parse = (byteArray) => {
-    // every sprite is 16 bytes, 
-    // 1 byte is 8 pixels, 
+    // every sprite is 16 bytes,
+    // 1 byte is 8 pixels,
     // byte n and byte n+8 control the color of that pixel (0,0) background (1,0) color 1 (0,1) color 2 (1,1) color 3
     let id = 0
     for (let b = 0; b < byteArray.length; b += 16) {
