@@ -202,13 +202,13 @@ function bin2str (bin) {
   for (const id in bin) {
     const int = bin[id]
     const hex = (int < 16 ? '0' : '') + int.toString(16)
-    str += `${hex}${id % 2 == 1 ? ' ' : ''}`
+    str += `${hex}${id % 2 === 1 ? ' ' : ''}`
   }
   return str.trim()
 }
 
 function bin2tuples (bin) {
-  const arr = new Array()
+  const arr = []
   const str = bin.replace(/ /g, '').trim()
   for (var i = 0; i < 32; i += 2) {
     const hex = str.substr(i, 2)

@@ -64,8 +64,8 @@ function SpriteEditor (screen = { w: 32, h: 32 }) {
 
   this.erase = () => {
     const tileOffset = Math.floor(client.selection / 16)
-    const pixelOffset = client.selection * 64
-    const sheetOffset = (tileOffset * 1024) + pixelOffset
+    const pixelOffset = (client.selection % 16) * 64
+    const sheetOffset = (client.tileEditor.page * 1024 * 16) + (tileOffset * 1024) + pixelOffset
     for (let i = 0; i < 64; i++) {
       SPRITESHEET[sheetOffset + i] = 0
     }
