@@ -142,7 +142,7 @@ function Client () {
   })
 
   document.oncopy = (e) => {
-    const tileData = this.tileEditor.getTile(this.selection)
+    const tileData = this.tileEditor.getTile(this.selection + (this.tileEditor.page * 256))
     const tileBin = tuples2bin(tile2Tuples(tileData))
     const tileStr = bin2str(tileBin)
     e.clipboardData.setData('text/plain', tileStr)
@@ -151,7 +151,7 @@ function Client () {
   }
 
   document.oncut = (e) => {
-    const tileData = this.tileEditor.getTile(this.selection)
+    const tileData = this.tileEditor.getTile(this.selection + (this.tileEditor.page * 256))
     const tileBin = tuples2bin(tile2Tuples(tileData))
     const tileStr = bin2str(tileBin)
     e.clipboardData.setData('text/plain', tileStr)
@@ -162,7 +162,7 @@ function Client () {
 
   document.onpaste = (e) => {
     const data = e.clipboardData.getData('text/plain').trim()
-    this.inject(this.selection, bin2tuples(data))
+    this.inject(this.selection + (this.tileEditor.page * 256), bin2tuples(data))
     e.preventDefault()
     this.update()
   }
