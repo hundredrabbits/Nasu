@@ -47,7 +47,9 @@ div.interface a.active { border-color: white !important; }
 
 /* Acels */
 
-#acels { position: fixed;width: 30px;background: red;top: 0;left: 0; width: 100vw; color:black; background:white; font-size:11px; line-height: 20px }
+#acels { position: fixed;width: 30px;background: red;top: 0;left: 0; width: 100vw; color:black; background:white; font-size:11px; line-height: 20px; transition: margin-top 0.25s }
+#acels.hidden { margin-top:-20px; }
+#acels.hidden > li > ul > li { display: none }
 #acels > li { float: left; position: relative; cursor: pointer; padding:0px 5px; display: inline-block; }
 #acels > li:hover { background: black; color:white; }
 #acels > li > ul { display: none; position: absolute; background:white; position: absolute; top:20px; left:0px; color:black; width: 200px}

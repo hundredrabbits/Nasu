@@ -92,21 +92,6 @@ function Acels (client) {
     e.preventDefault()
   }
 
-  this.toHTML = () => {
-    const cats = this.sort()
-    let text = ''
-    for (const cat of this.order) {
-      text += `<li>${cat}`
-      text += '<ul>'
-      for (const item of cats[cat]) {
-        text += item.accelerator ? `<li>${item.name} <i>${item.accelerator}</i></li>` : ''
-      }
-      text += '</ul>'
-      text += '</li>'
-    }
-    return text.trim()
-  }
-
   this.toMarkdown = () => {
     const cats = this.sort()
     let text = ''
@@ -128,5 +113,9 @@ function Acels (client) {
       }
     }
     return text.trim()
+  }
+
+  this.toggle = () => {
+    this.el.className = this.el.className === 'hidden' ? '' : 'hidden'
   }
 }
