@@ -7,15 +7,6 @@ function NametableEditor (screen = { w: 32, h: 32 }) {
 
   this.selection = null
   this._wrapper.id = 'nametable_editor'
-  this._importButton = document.createElement('a')
-  this._exportButton = document.createElement('a')
-
-  this.installInterface = (host) => {
-    host.appendChild(this._exportButton)
-    host.appendChild(this._importButton)
-    this._importButton.onclick = this.import
-    this._exportButton.onclick = this.export
-  }
 
   this.whenMouseDown = (pos, special) => {
     if (special !== true) {

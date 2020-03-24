@@ -8,27 +8,6 @@ function TileEditor (screen = { w: 16, h: 16 }) {
   this.page = 0
 
   this._wrapper.id = 'tile_editor'
-  this._page1Button = document.createElement('a')
-  this._page2Button = document.createElement('a')
-  this._importButton = document.createElement('a')
-  this._exportButton = document.createElement('a')
-
-  this.installInterface = (host) => {
-    this._page1Button.innerHTML = 'p1'
-    this._page2Button.innerHTML = 'p2'
-    this._exportButton.innerHTML = '.chr'
-    host.appendChild(this._page1Button)
-    host.appendChild(this._page2Button)
-    host.appendChild(this._exportButton)
-    host.appendChild(this._importButton)
-
-    this._page1Button.onclick = (e) => { this.selectPage(0) }
-    this._page2Button.onclick = (e) => { this.selectPage(1) }
-    this.selectPage(0)
-
-    this._importButton.onclick = this.import
-    this._exportButton.onclick = this.export
-  }
 
   this.whenMouseDown = (pos) => {
     client.select(this.posToId(pos))
@@ -152,8 +131,6 @@ function TileEditor (screen = { w: 16, h: 16 }) {
   }
 
   this.selectPage = (id) => {
-    this._page1Button.className = id === 0 ? 'active' : ''
-    this._page2Button.className = id === 1 ? 'active' : ''
     this.page = id
     client.update()
   }

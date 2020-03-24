@@ -8,27 +8,6 @@ function SpriteEditor (screen = { w: 32, h: 32 }) {
   this.brush = 1
 
   this._wrapper.id = 'sprite_editor'
-  this._color1Button = document.createElement('a')
-  this._color2Button = document.createElement('a')
-  this._color3Button = document.createElement('a')
-  this._color4Button = document.createElement('a')
-
-  this.installInterface = (host) => {
-    this._color1Button.innerHTML = 'c1'
-    this._color2Button.innerHTML = 'c2'
-    this._color3Button.innerHTML = 'c3'
-    this._color4Button.innerHTML = 'c4'
-    host.appendChild(this._color1Button)
-    host.appendChild(this._color2Button)
-    host.appendChild(this._color3Button)
-    host.appendChild(this._color4Button)
-    this._color1Button.onclick = (e) => { this.selectColor(0) }
-    this._color2Button.onclick = (e) => { this.selectColor(1) }
-    this._color3Button.onclick = (e) => { this.selectColor(2) }
-    this._color4Button.onclick = (e) => { this.selectColor(3) }
-
-    this.selectColor(0)
-  }
 
   this.whenMouseDown = (pos, special) => {
     if (special !== true) {
@@ -102,10 +81,6 @@ function SpriteEditor (screen = { w: 32, h: 32 }) {
   }
 
   this.selectColor = (id) => {
-    this._color1Button.className = id === 0 ? 'active' : ''
-    this._color2Button.className = id === 1 ? 'active' : ''
-    this._color3Button.className = id === 2 ? 'active' : ''
-    this._color4Button.className = id === 3 ? 'active' : ''
     this.brush = id
   }
 

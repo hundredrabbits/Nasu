@@ -15,13 +15,13 @@ function Client () {
   this.nametableEditor = new NametableEditor()
 
   this.el = document.createElement('div')
+  this.el.id = 'client'
 
   this.guides = true
   this.selection = 0
 
   this.install = (host) => {
     host.appendChild(this.el)
-    this.theme.install(host)
 
     this.spriteEditor.install(this.el)
     this.tileEditor.install(this.el)
@@ -29,13 +29,21 @@ function Client () {
 
     document.body.appendChild(this.el)
 
+    this.theme.install(host)
+    this.acels.install(host)
+
     this.theme.default = { background: '#000000', f_high: '#9b72de', f_med: '#72dec2', f_low: '#fff', f_inv: '#ffffff', b_high: '#555555', b_med: '#444444', b_low: '#222222', b_inv: '#ffb545' }
 
+    this.acels.set('∷', 'Toggle Menubar', 'CmdOrCtrl+Tab', () => { this.reset() })
+    this.acels.set('∷', 'Open Theme', 'CmdOrCtrl+Shift+O', () => { client.theme.open() })
+    this.acels.set('∷', 'Reset Theme', 'CmdOrCtrl+Backspace', () => { this.reset() })
+    this.acels.set('∷', 'Download Themes', 'CmdOrCtrl+Alt+O', () => { this.reset() })
+
     this.acels.set('File', 'New', 'CmdOrCtrl+N', () => { this.reset() })
-    this.acels.set('File', 'Import Spritesheet(.chr)', 'CmdOrCtrl+O', () => { this.tileEditor.import() })
-    this.acels.set('File', 'Import Nametable(.asm)', 'CmdOrCtrl+Shift+L', () => { this.nametableEditor.import() })
-    this.acels.set('File', 'Export Spritesheet(.chr)', 'CmdOrCtrl+S', () => { this.tileEditor.export() })
-    this.acels.set('File', 'Export Nametable(.asm)', 'CmdOrCtrl+Shift+S', () => { this.nametableEditor.export() })
+    this.acels.set('File', 'Import .chr', 'CmdOrCtrl+O', () => { this.tileEditor.import() })
+    this.acels.set('File', 'Import .asm', 'CmdOrCtrl+Shift+L', () => { this.nametableEditor.import() })
+    this.acels.set('File', 'Export .chr', 'CmdOrCtrl+S', () => { this.tileEditor.export() })
+    this.acels.set('File', 'Export .asm', 'CmdOrCtrl+Shift+S', () => { this.nametableEditor.export() })
 
     this.acels.add('Edit', 'cut')
     this.acels.add('Edit', 'copy')
@@ -55,9 +63,6 @@ function Client () {
     this.acels.set('Tile', 'Erase', 'Shift+Backspace', () => { this.tileEditor.erase() })
     this.acels.set('Tile', 'Toggle Page', 'Tab', () => { this.tileEditor.selectPage(this.tileEditor.page === 1 ? 0 : 1) })
     this.acels.set('View', 'Toggle Guides', 'H', () => { this.toggleGuides() })
-
-    this.acels.install(window)
-    this.acels.pipe(this.commander)
   }
 
   this.start = () => {
@@ -65,6 +70,7 @@ function Client () {
     console.info(`${this.acels}`)
     this.theme.start()
     this.theme.onLoad = () => { this.update() }
+    this.acels.start()
 
     this.spriteEditor.start()
     this.tileEditor.start()
