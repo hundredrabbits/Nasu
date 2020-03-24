@@ -9,13 +9,13 @@ The application was initially created for internal use, but was later made avail
 Controls
 
 ∷        Toggle Menubar   Tab
-∷        Open Theme       CmdOrCtrl+Shift+O
-∷        Reset Theme      CmdOrCtrl+Backspace
-File     New              CmdOrCtrl+N
-File     Import .chr      CmdOrCtrl+O
-File     Import .asm      CmdOrCtrl+Shift+L
-File     Export .chr      CmdOrCtrl+S
-File     Export .asm      CmdOrCtrl+Shift+S
+∷        Open Theme       ^Shift+O
+∷        Reset Theme      ^Backspace
+File     New              ^N
+File     Import .chr      ^O
+File     Import .asm      ^Shift+L
+File     Export .chr      ^S
+File     Export .asm      ^Shift+S
 Select   Move Up          W
 Select   Move Right       D
 Select   Move Down        S

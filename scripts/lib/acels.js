@@ -109,7 +109,7 @@ function Acels (client) {
     let text = ''
     for (const cat of this.order) {
       for (const item of cats[cat]) {
-        text += item.accelerator ? `${cat.padEnd(8,' ')} ${item.name.padEnd(16, ' ')} ${item.accelerator}\n` : ''
+        text += item.accelerator ? `${cat.padEnd(8, ' ')} ${item.name.padEnd(16, ' ')} ${item.accelerator.replace('CmdOrCtrl+', '^')}\n` : ''
       }
     }
     return text.trim()
