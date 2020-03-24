@@ -971,8 +971,8 @@ function TileEditor (screen = { w: 16, h: 16 }) {
     font-display: swap;
 }
 body { margin:0px; padding:0px; overflow:hidden; background:000; -webkit-app-region: drag; -webkit-user-select: none; font-size:12px; transition: background 500ms}
-body { padding: 35px 15px; margin:0px 30px; background:#000; color:white; overflow:hidden; -webkit-app-region: drag; font-family:"input_mono_regular",courier,monospace;}
-body > div#client { width:768px; position: relative; height:512px; margin:0px auto; }
+body { padding: 30px 0px; margin:0px 30px; background:#000; color:white; overflow:hidden; -webkit-app-region: drag; font-family:"input_mono_regular",courier,monospace;}
+body > div#client { width:768px; position: relative; height:512px; }
 canvas { display: block; border-radius: 2px; image-rendering: pixelated; image-rendering: optimizeSpeed; -webkit-app-region: no-drag; }
 div.wrapper { position: relative; }
 div.interface { padding:0px 0px; position: absolute; bottom:0px;}
@@ -995,7 +995,7 @@ div.interface a.active { border-color: white !important; }
 #nametable_editor div.interface { top: 0px;right: -38px;width: 30px; }
 #nametable_editor div.interface a:nth-child(1) { background-image:url(export_icon.svg); background-position: center;}
 #nametable_editor div.interface a:nth-child(2) { background-image:url(import_icon.svg); background-position: center;}
-#acels { position: fixed;width: 30px;background: red;top: 0;left: 0; width: 100vw; color:black; background:white; font-size:11px; line-height: 20px; transition: margin-top 0.25s }
+#acels { position: fixed;width: 30px;background: red;top: 0;left: 0; width: 100vw; color:black; background:white; font-size:11px; line-height: 20px; transition: margin-top 0.25s; z-index: 9999; padding-left: 25px; }
 #acels.hidden { margin-top:-20px; }
 #acels.hidden > li > ul > li { display: none }
 #acels > li { float: left; position: relative; cursor: pointer; padding:0px 5px; display: inline-block; }
