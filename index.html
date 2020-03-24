@@ -1,46 +1,1026 @@
-<!doctype html>
-<html lang='en'>
-<head>
-  <meta charset="utf-8">
-  <link rel="stylesheet" href="desktop/sources/assets/main.css">
-  <script type="text/javascript">function require(name){ console.warn('Failed to require '+name) }</script>
-  <script type="text/javascript" src="desktop/sources/scripts/lib/source.js"></script>
-  <script type="text/javascript" src="desktop/sources/scripts/lib/acels.js"></script>
-  <script type="text/javascript" src="desktop/sources/scripts/lib/theme.js"></script>
-  <script type="text/javascript" src="desktop/sources/scripts/client.js"></script>
-  <script type="text/javascript" src="desktop/sources/scripts/editor.js"></script>
-  <script type="text/javascript" src="desktop/sources/scripts/sprite_editor.js"></script>
-  <script type="text/javascript" src="desktop/sources/scripts/tile_editor.js"></script>
-  <script type="text/javascript" src="desktop/sources/scripts/nametable_editor.js"></script>
-  <title>Nasu</title>
-</head>
-<body>
+<!DOCTYPE html>
+<html lang="en">
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nasu</title>
+  </head>
+  <body>
     <script>
-    'use strict'
-
-    const SPRITESHEET = new Array(512 * 16 * 8).fill(0)
-    const NAMETABLE = new Array(32*30).fill(0)
-
-    const client = new Client()
-
-    client.install(document.body)
-
-    window.addEventListener('load', () => {
-      client.start()
-      client.acels.inject('Nasu')
-
-      /// Load up default sprite sheet
-
-      const xhr = new XMLHttpRequest()
-      xhr.open('GET', 'desktop/sources/assets/mario.chr')
-      xhr.responseType = 'arraybuffer'
-
-      xhr.addEventListener('load', (e) => {
-        client.tileEditor.parse(new Uint8Array(xhr.response))
+'use strict'
+function Acels (client) {
+  this.all = {}
+  this.roles = {}
+  this.pipe = null
+  this.install = (host = window) => {
+    host.addEventListener('keydown', this.onKeyDown, false)
+    host.addEventListener('keyup', this.onKeyUp, false)
+  }
+  this.set = (cat, name, accelerator, downfn, upfn) => {
+    if (this.all[accelerator]) { console.warn('Acels', `Trying to overwrite ${this.all[accelerator].name}, with ${name}.`) }
+    this.all[accelerator] = { cat, name, downfn, upfn, accelerator }
+  }
+  this.add = (cat, role) => {
+    this.all[':' + role] = { cat, name: role, role }
+  }
+  this.get = (accelerator) => {
+    return this.all[accelerator]
+  }
+  this.sort = () => {
+    const h = {}
+    for (const item of Object.values(this.all)) {
+      if (!h[item.cat]) { h[item.cat] = [] }
+      h[item.cat].push(item)
+    }
+    return h
+  }
+  this.convert = (event) => {
+    const accelerator = event.key === ' ' ? 'Space' : event.key.substr(0, 1).toUpperCase() + event.key.substr(1)
+    if ((event.ctrlKey || event.metaKey) && event.shiftKey) {
+      return `CmdOrCtrl+Shift+${accelerator}`
+    }
+    if (event.shiftKey && event.key.toUpperCase() !== event.key) {
+      return `Shift+${accelerator}`
+    }
+    if (event.altKey && event.key.length !== 1) {
+      return `Alt+${accelerator}`
+    }
+    if (event.ctrlKey || event.metaKey) {
+      return `CmdOrCtrl+${accelerator}`
+    }
+    return accelerator
+  }
+  this.pipe = (obj) => {
+    this.pipe = obj
+  }
+  this.onKeyDown = (e) => {
+    const target = this.get(this.convert(e))
+    if (!target || !target.downfn) { return this.pipe ? this.pipe.onKeyDown(e) : null }
+    target.downfn()
+    e.preventDefault()
+  }
+  this.onKeyUp = (e) => {
+    const target = this.get(this.convert(e))
+    if (!target || !target.upfn) { return this.pipe ? this.pipe.onKeyUp(e) : null }
+    target.upfn()
+    e.preventDefault()
+  }
+  this.toMarkdown = () => {
+    const cats = this.sort()
+    let text = ''
+    for (const cat in cats) {
+      text += `\n### ${cat}\n\n`
+      for (const item of cats[cat]) {
+        text += item.accelerator ? `- \`${item.accelerator}\`: ${item.name}\n` : ''
+      }
+    }
+    return text.trim()
+  }
+  this.toString = () => {
+    const cats = this.sort()
+    let text = ''
+    for (const cat in cats) {
+      for (const item of cats[cat]) {
+        text += item.accelerator ? `${cat}: ${item.name} | ${item.accelerator}\n` : ''
+      }
+    }
+    return text.trim()
+  }
+}
+'use strict'
+function Source (client) {
+  this.cache = {}
+  this.install = () => {
+  }
+  this.start = () => {
+    this.new()
+  }
+  this.new = () => {
+    console.log('Source', 'New file..')
+    this.cache = {}
+  }
+  this.open = (ext, callback, store = false) => {
+    console.log('Source', 'Open file..')
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.onchange = (e) => {
+      const file = e.target.files[0]
+      if (file.name.indexOf('.' + ext) < 0) { console.warn('Source', `Skipped ${file.name}`); return }
+      this.read(file, callback, store)
+    }
+    input.click()
+  }
+  this.load = (ext, callback) => {
+    console.log('Source', 'Load files..')
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.setAttribute('multiple', 'multiple')
+    input.onchange = (e) => {
+      for (const file of e.target.files) {
+        if (file.name.indexOf('.' + ext) < 0) { console.warn('Source', `Skipped ${file.name}`); continue }
+        this.read(file, this.store)
+      }
+    }
+    input.click()
+  }
+  this.store = (file, content) => {
+    console.info('Source', 'Stored ' + file.name)
+    this.cache[file.name] = content
+  }
+  this.save = (name, content, type = 'text/plain', callback) => {
+    this.saveAs(name, content, type, callback)
+  }
+  this.saveAs = (name, ext, content, type = 'text/plain', callback) => {
+    console.log('Source', 'Save new file..')
+    this.write(name, ext, content, type, callback)
+  }
+  this.read = (file, callback, store = false) => {
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const res = event.target.result
+      if (callback) { callback(file, res) }
+      if (store) { this.store(file, res) }
+    }
+    reader.readAsText(file, 'UTF-8')
+  }
+  this.write = (name, ext, content, type, settings = 'charset=utf-8') => {
+    const link = document.createElement('a')
+    link.setAttribute('download', `${name}-${timestamp()}.${ext}`)
+    if (type === 'image/png' || type === 'image/jpeg') {
+      link.setAttribute('href', content)
+    } else {
+      link.setAttribute('href', 'data:' + type + ';' + settings + ',' + encodeURIComponent(content))
+    }
+    link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }))
+  }
+  function timestamp (d = new Date(), e = new Date(d)) {
+    return `${arvelie()}-${neralie()}`
+  }
+  function arvelie (date = new Date()) {
+    const start = new Date(date.getFullYear(), 0, 0)
+    const diff = (date - start) + ((start.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000)
+    const doty = Math.floor(diff / 86400000) - 1
+    const y = date.getFullYear().toString().substr(2, 2)
+    const m = doty === 364 || doty === 365 ? '+' : String.fromCharCode(97 + Math.floor(doty / 14)).toUpperCase()
+    const d = `${(doty === 365 ? 1 : doty === 366 ? 2 : (doty % 14)) + 1}`.padStart(2, '0')
+    return `${y}${m}${d}`
+  }
+  function neralie (d = new Date(), e = new Date(d)) {
+    const ms = e - d.setHours(0, 0, 0, 0)
+    return (ms / 8640 / 10000).toFixed(6).substr(2, 6)
+  }
+}
+'use strict'
+function Theme (client) {
+  this.el = document.createElement('style')
+  this.el.type = 'text/css'
+  this.active = {}
+  this.default = {
+    background: '#eeeeee',
+    f_high: '#0a0a0a',
+    f_med: '#4a4a4a',
+    f_low: '#6a6a6a',
+    f_inv: '#111111',
+    b_high: '#a1a1a1',
+    b_med: '#c1c1c1',
+    b_low: '#ffffff',
+    b_inv: '#ffb545'
+  }
+  this.onLoad = () => {}
+  this.install = (host = document.body) => {
+    window.addEventListener('dragover', this.drag)
+    window.addEventListener('drop', this.drop)
+    host.appendChild(this.el)
+  }
+  this.start = () => {
+    console.log('Theme', 'Starting..')
+    if (isJson(localStorage.theme)) {
+      const storage = JSON.parse(localStorage.theme)
+      if (isValid(storage)) {
+        console.log('Theme', 'Loading theme in localStorage..')
+        this.load(storage)
+        return
+      }
+    }
+    this.load(this.default)
+  }
+  this.open = () => {
+    console.log('Theme', 'Open theme..')
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.onchange = (e) => {
+      this.read(e.target.files[0], this.load)
+    }
+    input.click()
+  }
+  this.load = (data) => {
+    const theme = this.parse(data)
+    if (!isValid(theme)) { console.warn('Theme', 'Invalid format'); return }
+    console.log('Theme', 'Loaded theme!')
+    this.el.innerHTML = `:root { 
+      --background: ${theme.background}; 
+      --f_high: ${theme.f_high}; 
+      --f_med: ${theme.f_med}; 
+      --f_low: ${theme.f_low}; 
+      --f_inv: ${theme.f_inv}; 
+      --b_high: ${theme.b_high}; 
+      --b_med: ${theme.b_med}; 
+      --b_low: ${theme.b_low}; 
+      --b_inv: ${theme.b_inv};
+    }`
+    localStorage.setItem('theme', JSON.stringify(theme))
+    this.active = theme
+    if (this.onLoad) {
+      this.onLoad(data)
+    }
+  }
+  this.reset = () => {
+    this.load(this.default)
+  }
+  this.set = (key, val) => {
+    if (!val) { return }
+    const hex = (`${val}`.substr(0, 1) !== '#' ? '#' : '') + `${val}`
+    if (!isColor(hex)) { console.warn('Theme', `${hex} is not a valid color.`); return }
+    this.active[key] = hex
+  }
+  this.read = (key) => {
+    return this.active[key]
+  }
+  this.parse = (any) => {
+    if (isValid(any)) { return any }
+    if (isJson(any)) { return JSON.parse(any) }
+    if (isHtml(any)) { return extract(any) }
+  }
+  this.drag = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'copy'
+  }
+  this.drop = (e) => {
+    e.preventDefault()
+    const file = e.dataTransfer.files[0]
+    if (file.name.indexOf('.svg') > -1) {
+      this.read(file, this.load)
+    }
+    e.stopPropagation()
+  }
+  this.read = (file, callback) => {
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      callback(event.target.result)
+    }
+    reader.readAsText(file, 'UTF-8')
+  }
+  function extract (xml) {
+    const svg = new DOMParser().parseFromString(xml, 'text/xml')
+    try {
+      return {
+        background: svg.getElementById('background').getAttribute('fill'),
+        f_high: svg.getElementById('f_high').getAttribute('fill'),
+        f_med: svg.getElementById('f_med').getAttribute('fill'),
+        f_low: svg.getElementById('f_low').getAttribute('fill'),
+        f_inv: svg.getElementById('f_inv').getAttribute('fill'),
+        b_high: svg.getElementById('b_high').getAttribute('fill'),
+        b_med: svg.getElementById('b_med').getAttribute('fill'),
+        b_low: svg.getElementById('b_low').getAttribute('fill'),
+        b_inv: svg.getElementById('b_inv').getAttribute('fill')
+      }
+    } catch (err) {
+      console.warn('Theme', 'Incomplete SVG Theme', err)
+    }
+  }
+  function isValid (json) {
+    if (!json) { return false }
+    if (!json.background || !isColor(json.background)) { return false }
+    if (!json.f_high || !isColor(json.f_high)) { return false }
+    if (!json.f_med || !isColor(json.f_med)) { return false }
+    if (!json.f_low || !isColor(json.f_low)) { return false }
+    if (!json.f_inv || !isColor(json.f_inv)) { return false }
+    if (!json.b_high || !isColor(json.b_high)) { return false }
+    if (!json.b_med || !isColor(json.b_med)) { return false }
+    if (!json.b_low || !isColor(json.b_low)) { return false }
+    if (!json.b_inv || !isColor(json.b_inv)) { return false }
+    return true
+  }
+  function isColor (hex) {
+    return /^#([0-9A-F]{3}){1,2}$/i.test(hex)
+  }
+  function isJson (text) {
+    try { JSON.parse(text); return true } catch (error) { return false }
+  }
+  function isHtml (text) {
+    try { new DOMParser().parseFromString(text, 'text/xml'); return true } catch (error) { return false }
+  }
+}
+'use strict'
+const SPRITESHEET = new Array(512 * 16 * 8).fill(0)
+const NAMETABLE = new Array(32 * 30).fill(0)
+function Client () {
+  this.source = new Source()
+  this.theme = new Theme()
+  this.acels = new Acels()
+  this.spriteEditor = new SpriteEditor()
+  this.tileEditor = new TileEditor()
+  this.nametableEditor = new NametableEditor()
+  this.el = document.createElement('div')
+  this.guides = true
+  this.selection = 0
+  this.install = (host) => {
+    host.appendChild(this.el)
+    this.theme.install(host)
+    this.spriteEditor.install(this.el)
+    this.tileEditor.install(this.el)
+    this.nametableEditor.install(this.el)
+    document.body.appendChild(this.el)
+    this.theme.default = { background: '#000000', f_high: '#9b72de', f_med: '#72dec2', f_low: '#fff', f_inv: '#ffffff', b_high: '#555555', b_med: '#444444', b_low: '#222222', b_inv: '#ffb545' }
+    this.acels.set('File', 'New', 'CmdOrCtrl+N', () => { this.reset() })
+    this.acels.set('File', 'Import Spritesheet(.chr)', 'CmdOrCtrl+O', () => { this.tileEditor.import() })
+    this.acels.set('File', 'Import Nametable(.asm)', 'CmdOrCtrl+Shift+L', () => { this.nametableEditor.import() })
+    this.acels.set('File', 'Export Spritesheet(.chr)', 'CmdOrCtrl+S', () => { this.tileEditor.export() })
+    this.acels.set('File', 'Export Nametable(.asm)', 'CmdOrCtrl+Shift+S', () => { this.nametableEditor.export() })
+    this.acels.add('Edit', 'cut')
+    this.acels.add('Edit', 'copy')
+    this.acels.add('Edit', 'paste')
+    this.acels.set('Select', 'Move Up', 'W', () => { this.modSelect({ x: 0, y: 2 }) })
+    this.acels.set('Select', 'Move Right', 'D', () => { this.modSelect({ x: 2, y: 0 }) })
+    this.acels.set('Select', 'Move Down', 'S', () => { this.modSelect({ x: 0, y: -2 }) })
+    this.acels.set('Select', 'Move Left', 'A', () => { this.modSelect({ x: -2, y: 0 }) })
+    this.acels.set('Sprite', 'Select Color1', '1', () => { this.spriteEditor.selectColor(0) })
+    this.acels.set('Sprite', 'Select Color2', '2', () => { this.spriteEditor.selectColor(1) })
+    this.acels.set('Sprite', 'Select Color3', '3', () => { this.spriteEditor.selectColor(2) })
+    this.acels.set('Sprite', 'Select Color4', '4', () => { this.spriteEditor.selectColor(3) })
+    this.acels.set('Sprite', 'Erase', 'Backspace', () => { this.spriteEditor.erase() })
+    this.acels.set('Tile', 'Erase', 'Shift+Backspace', () => { this.tileEditor.erase() })
+    this.acels.set('Tile', 'Toggle Page', 'Tab', () => { this.tileEditor.selectPage(this.tileEditor.page === 1 ? 0 : 1) })
+    this.acels.set('View', 'Toggle Guides', 'H', () => { this.toggleGuides() })
+    this.acels.install(window)
+    this.acels.pipe(this.commander)
+  }
+  this.start = () => {
+    console.info('Client', 'Starting..')
+    console.info(`${this.acels}`)
+    this.theme.start()
+    this.theme.onLoad = () => { this.update() }
+    this.spriteEditor.start()
+    this.tileEditor.start()
+    this.nametableEditor.start()
+  }
+  this.select = (id) => {
+    this.selection = id
+  }
+  this.modSelect = (mod) => {
+    const pos = this.tileEditor.idToPos(this.selection)
+    const dest = { x: clamp(pos.x + mod.x, 0, 31), y: clamp(pos.y - mod.y, 0, 31) }
+    this.selection = this.tileEditor.posToId(dest)
+    this.spriteEditor.update()
+    this.tileEditor.update()
+  }
+  this.reset = () => {
+    for (let i = 0; i < 512 * 16 * 8; i++) {
+      SPRITESHEET[i] = 0
+    }
+    for (let i = 0; i < 32 * 30; i++) {
+      NAMETABLE[i] = 0
+    }
+    this.update()
+  }
+  this.toggleGuides = () => {
+    this.guides = !this.guides
+    this.update()
+  }
+  this.getColor = (id) => {
+    if (id === 0) { return this.theme.active.background }
+    if (id === 1) { return this.theme.active.f_high }
+    if (id === 2) { return this.theme.active.f_med }
+    if (id === 3) { return this.theme.active.f_low }
+  }
+  this.update = () => {
+    this.spriteEditor.update()
+    this.tileEditor.update()
+    this.nametableEditor.update()
+  }
+  this.inject = (origin, tuples) => {
+    let id = origin * 64
+    for (let i = 0; i < 8; i++) {
+      for (let j = 7; j >= 0; j--) {
+        const mask = 0x1
+        const channel1 = tuples[i]
+        const channel2 = tuples[i + 8]
+        const color = ((channel1 >>> j) & mask) + (((channel2 >>> j) & mask) << 1)
+        SPRITESHEET[id] = color
+        id++
+      }
+    }
+  }
+  window.addEventListener('dragover', (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'copy'
+  })
+  window.addEventListener('drop', (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    for (const file of e.dataTransfer.files) {
+      console.log(file.name)
+      if (file.name.indexOf('.chr') > -1) { this.tileEditor.open(file) }
+      if (file.name.indexOf('.asm') > -1) { this.source.read(file, this.nametableEditor.parse) }
+    }
+  })
+  document.oncopy = (e) => {
+    const tileData = this.tileEditor.getTile(this.selection + (this.tileEditor.page * 256))
+    const tileBin = tuples2bin(tile2Tuples(tileData))
+    const tileStr = bin2str(tileBin)
+    e.clipboardData.setData('text/plain', tileStr)
+    e.preventDefault()
+    console.log(tileStr)
+  }
+  document.oncut = (e) => {
+    const tileData = this.tileEditor.getTile(this.selection + (this.tileEditor.page * 256))
+    const tileBin = tuples2bin(tile2Tuples(tileData))
+    const tileStr = bin2str(tileBin)
+    e.clipboardData.setData('text/plain', tileStr)
+    e.preventDefault()
+    this.spriteEditor.erase()
+    console.log(tileStr)
+  }
+  document.onpaste = (e) => {
+    const data = e.clipboardData.getData('text/plain').trim()
+    this.inject(this.selection + (this.tileEditor.page * 256), bin2tuples(data))
+    e.preventDefault()
+    this.update()
+  }
+}
+function tile2Tuples (tile) {
+  const buff = new Array(64)
+  for (let i = 0; i < 64; i++) {
+    buff[i] = color2Tuple(tile[i])
+  }
+  return buff
+}
+function color2Tuple (color) {
+  return color === 0 ? [0x0, 0x0] : color === 1 ? [0x1, 0x0] : color === 2 ? [0x0, 0x1] : [0x1, 0x1]
+}
+function tuples2bin (tuples) {
+  const byteArray = new Uint8Array(16)
+  for (let y = 0; y < 8; y++) {
+    let byteChannel1 = 0x00
+    let byteChannel2 = 0x00
+    for (let x = 0; x < 8; x++) {
+      const id = x + (y * 8)
+      const tup = tuples[id]
+      byteChannel1 = (byteChannel1 << 1 | tup[0])
+      byteChannel2 = (byteChannel2 << 1 | tup[1])
+    }
+    byteArray[y] = byteChannel1
+    byteArray[y + 8] = byteChannel2
+  }
+  return byteArray
+}
+function bin2str (bin) {
+  let str = ''
+  for (const id in bin) {
+    const int = bin[id]
+    const hex = (int < 16 ? '0' : '') + int.toString(16)
+    str += `${hex}${id % 2 === 1 ? ' ' : ''}`
+  }
+  return str.trim()
+}
+function bin2tuples (bin) {
+  const arr = []
+  const str = bin.replace(/ /g, '').trim()
+  for (var i = 0; i < 32; i += 2) {
+    const hex = str.substr(i, 2)
+    arr[i / 2] = parseInt(hex, 16)
+  }
+  return arr
+}
+function clamp (v, min, max) { return v < min ? min : v > max ? max : v }
+'use strict'
+function Editor (scale = 1, screen = { w: 32, h: 32 }) {
+  this.scale = scale
+  this._wrapper = document.createElement('div')
+  this._wrapper.className = 'wrapper'
+  this._interface = document.createElement('div')
+  this._interface.className = 'interface'
+  this._canvas = document.createElement('canvas')
+  this.context = this._canvas.getContext('2d')
+  this.data = new Array(screen.w * screen.h)
+  this.install = (host) => {
+    this._wrapper.appendChild(this._canvas)
+    this._wrapper.appendChild(this._interface)
+    host.appendChild(this._wrapper)
+    this._canvas.width = (scale * screen.w * 8) + 1
+    this._canvas.height = (scale * screen.h * 8) + 1
+    this._canvas.onmousedown = this.onMouseDown
+    this._canvas.onmousemove = this.onMouseMove
+    this._canvas.onmouseup = this.onMouseUp
+    this._canvas.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation() }
+    this.installInterface(this._interface)
+  }
+  this.installInterface = (host) => {
+  }
+  this.start = () => {
+    this.update()
+  }
+  this.update = () => {
+    this.clear()
+    this.drawGrid()
+    this.drawTiles()
+    this.drawGuides()
+  }
+  this.clear = () => {
+    this.context.clearRect(0, 0, this._canvas.width, this._canvas.height)
+  }
+  this.drawGrid = () => {
+    if (client.guides !== true) { return }
+    for (var x = 1; x < 32; x++) {
+      this.drawLine({ x: x * 8 * scale, y: 0 }, { x: x * 8 * scale, y: 256 * scale }, 0.5, x % 8 === 0 ? client.theme.active.b_high : x % 4 === 0 ? client.theme.active.b_med : client.theme.active.b_low)
+    }
+    for (var y = 1; y < 32; y++) {
+      this.drawLine({ x: 0, y: y * 8 * scale }, { x: 256 * scale, y: y * 8 * scale }, 0.5, y % 8 === 0 ? client.theme.active.b_high : y % 4 === 0 ? client.theme.active.b_med : client.theme.active.b_low)
+    }
+  }
+  this.drawPixel = (pos, size = 1, color = 'red') => {
+    this.context.beginPath()
+    this.context.rect(pos.x, pos.y, size, size)
+    this.context.fillStyle = color
+    this.context.fill()
+  }
+  this.drawLine = (a, b, size, color) => {
+    this.context.beginPath()
+    this.context.moveTo(a.x + 0.5, a.y + 0.5)
+    this.context.lineTo(b.x + 0.5, b.y + 0.5)
+    this.context.strokeStyle = color
+    this.context.stroke()
+  }
+  this.drawRect = (rect, color) => {
+    this.context.beginPath()
+    this.context.rect(rect.x + 0.5, rect.y + 0.5, rect.w, rect.h)
+    this.context.strokeStyle = color
+    this.context.stroke()
+  }
+  this.isMouseDown = false
+  this.mouseLastPos = null
+  this.onMouseDown = (e) => {
+    this.isMouseDown = true
+    const tilepos = tilePosition({ x: e.layerX, y: e.layerY }, this.scale)
+    this.whenMouseDown(tilepos, e.button !== 0 || e.which !== 1)
+    this.mouseLastPos = tilepos
+  }
+  this.onMouseMove = (e) => {
+    if (!this.isMouseDown) { return }
+    const tilepos = tilePosition({ x: e.layerX, y: e.layerY }, this.scale)
+    if (positionsEqual(tilepos, this.mouseLastPos)) { return }
+    this.whenMouseMove(tilepos, e.button !== 0 || e.which !== 1)
+    this.mouseLastPos = tilepos
+  }
+  this.onMouseUp = (e) => {
+    this.isMouseDown = false
+    const tilepos = tilePosition({ x: e.layerX, y: e.layerY }, this.scale)
+    this.whenMouseUp(tilepos, e.button !== 0 || e.which !== 1)
+    this.mouseLastPos = null
+  }
+  this.whenMouseDown = (pos, special) => { }
+  this.whenMouseMove = (pos, special) => { }
+  this.whenMouseUp = (pos, special) => { }
+  this.posToId = (pos) => {
+    const blockId = Math.floor(pos.x / 8) + (Math.floor(pos.y / 8) * 4)
+    const tileId = (Math.floor(pos.x / 2) % 4) + ((Math.floor(pos.y / 2) % 4) * 4)
+    return (blockId * 16) + tileId
+  }
+  this.idToPos = (id) => {
+    const blockId = Math.floor(id / 16)
+    const blockRect = { x: (blockId % 4) * 64, y: Math.floor(blockId / 4) * 64 }
+    const tileRect = { x: blockRect.x + (client.selection % 4) * 16, y: blockRect.y + (Math.floor(id / 4) * 16) % 64 }
+    return { x: 2 * Math.floor(tileRect.x / 16), y: 2 * Math.floor(tileRect.y / 16) }
+  }
+  function tilePosition (pos, scale) {
+    return { x: Math.floor(pos.x / 8 / scale) * scale, y: Math.floor(pos.y / 8 / scale) * scale }
+  }
+  function positionsEqual (a, b) {
+    return a.x === b.x && a.y === b.y
+  }
+}
+'use strict'
+function NametableEditor (screen = { w: 32, h: 32 }) {
+  Editor.call(this, 2)
+  this.selection = null
+  this._wrapper.id = 'nametable_editor'
+  this._importButton = document.createElement('a')
+  this._exportButton = document.createElement('a')
+  this.installInterface = (host) => {
+    host.appendChild(this._exportButton)
+    host.appendChild(this._importButton)
+    this._importButton.onclick = this.import
+    this._exportButton.onclick = this.export
+  }
+  this.whenMouseDown = (pos, special) => {
+    if (special !== true) {
+      this.paint(pos, this.brush)
+      this.unselect()
+    } else {
+      const size = { x: pos.x / 8, y: pos.y / 8 }
+      this.selection = { x: size.x, y: size.y, w: 2, h: 2, special: true }
+      this.update()
+    }
+  }
+  this.whenMouseMove = (pos, special) => {
+    if (!this.selection || this.selection.special !== true) {
+      this.paint(pos, this.brush)
+    } else {
+      this.selection.w = clamp((((pos.x / 8) + 0.25) - this.selection.x) * 8, 2, 48)
+      this.selection.h = clamp((((pos.y / 8) + 0.25) - this.selection.y) * 8, 2, 48)
+      this.update()
+    }
+  }
+  this.whenMouseUp = (pos, special) => {
+    if (!this.selection || this.selection.special !== true) {
+      return
+    }
+    this.selection.special = false
+  }
+  this.paint = (pos, value) => {
+    const id = (pos.x / 2) + ((pos.y / 2) * 32)
+    NAMETABLE[id] = client.selection % 256
+    this.update()
+  }
+  this.select = (pos) => {
+    this.selection = { x: Math.floor(pos.x / 8), y: Math.floor(pos.y / 8), special: false }
+    this.update()
+  }
+  this.unselect = () => {
+    this.selection = null
+    this.update()
+  }
+  this.drawTiles = () => {
+    for (let x = 0; x < 32; x++) {
+      for (let y = 0; y < 30; y++) {
+        const id = x + (y * 32)
+        this.drawTile({ x: x * 16, y: y * 16 }, NAMETABLE[id])
+      }
+    }
+  }
+  this.drawTile = (offset, tile) => {
+    for (let x = 0; x < 8; x++) {
+      for (let y = 0; y < 8; y++) {
+        const id = (tile * 64) + (y * 8) + x + (client.tileEditor.page * 16384)
+        const pos = { x: ((offset.x) + (x * 2)), y: ((offset.y) + (y * 2)) }
+        if (SPRITESHEET[id] < 1) { continue }
+        this.drawPixel(pos, this.scale, client.getColor(SPRITESHEET[id]))
+      }
+    }
+  }
+  this.drawGuides = () => {
+    if (client.guides !== true || !this.selection) { return }
+    const rect = { x: this.selection.x * 8 * 8, y: this.selection.y * 8 * 8, w: (this.selection.w || 8) * 8, h: (this.selection.h || 8) * 8 }
+    this.context.beginPath()
+    this.context.rect(rect.x + 0.5, rect.y + 0.5, rect.w, rect.h)
+    this.context.strokeStyle = client.theme.active.b_inv
+    this.context.stroke()
+  }
+  this.toString = () => {
+    let txt = 'background:\n'
+    for (let y = 0; y < 30; y++) {
+      txt += '  .db '
+      for (let x = 0; x < 32; x++) {
+        const id = x + (y * 32)
+        txt += `${toHex(NAMETABLE[id])}${(x < 32 - 1 ? ',' : '')}`
+      }
+      txt += '\n'
+    }
+    return txt
+  }
+  this.toStringSelection = (size) => {
+    let txt = 'selection:\n'
+    for (let y = size.y; y < size.h + size.y; y++) {
+      txt += '  .db '
+      for (let x = size.x; x < size.w + size.x; x++) {
+        const id = x + (y * 32)
+        txt += `${toHex(NAMETABLE[id])}${(x < size.w + size.x - 1 ? ',' : '')}`
+      }
+      txt += '\n'
+    }
+    return txt
+  }
+  this.parse = (file, data) => {
+    const lines = data.split('\n').filter((item) => { return item.indexOf('.db ') > -1 })
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim().replace('.db ', '')
+      const tiles = line.split(',')
+      for (const tileId in tiles) {
+        const id = (i * tiles.length) + parseInt(tileId)
+        const value = tiles[tileId]
+        NAMETABLE[id] = parseInt(value.substr(1), 16)
+      }
+    }
+    client.update()
+  }
+  this.import = () => {
+    client.source.open('asm', this.parse)
+  }
+  this.export = () => {
+    if (this.selection) {
+      const size = { x: this.selection.x * 4, y: this.selection.y * 4, w: this.selection.w / 2, h: this.selection.h / 2 }
+      client.source.write('selection', 'asm', `${this.toStringSelection(size)}`, 'text/plain')
+    } else {
+      client.source.write('background', 'asm', `${this}`, 'text/plain')
+    }
+  }
+  function toHex (int) {
+    return '$' + (int % 256 || 0).toString(16).padStart(2, '0')
+  }
+  function clamp (v, min, max) { return v < min ? min : v > max ? max : v }
+}
+'use strict'
+function SpriteEditor (screen = { w: 32, h: 32 }) {
+  Editor.call(this, 1)
+  this.brush = 1
+  this._wrapper.id = 'sprite_editor'
+  this._color1Button = document.createElement('a')
+  this._color2Button = document.createElement('a')
+  this._color3Button = document.createElement('a')
+  this._color4Button = document.createElement('a')
+  this.installInterface = (host) => {
+    this._color1Button.innerHTML = 'c1'
+    this._color2Button.innerHTML = 'c2'
+    this._color3Button.innerHTML = 'c3'
+    this._color4Button.innerHTML = 'c4'
+    host.appendChild(this._color1Button)
+    host.appendChild(this._color2Button)
+    host.appendChild(this._color3Button)
+    host.appendChild(this._color4Button)
+    this._color1Button.onclick = (e) => { this.selectColor(0) }
+    this._color2Button.onclick = (e) => { this.selectColor(1) }
+    this._color3Button.onclick = (e) => { this.selectColor(2) }
+    this._color4Button.onclick = (e) => { this.selectColor(3) }
+    this.selectColor(0)
+  }
+  this.whenMouseDown = (pos, special) => {
+    if (special !== true) {
+      this.paint(pos, this.brush)
+    }
+    const tileOffset = Math.floor(client.selection / 16)
+    const id = (tileOffset * 16) + Math.floor(pos.x / 8) + (Math.floor(pos.y / 8) * 4)
+    client.select(id)
+    this.update()
+  }
+  this.whenMouseMove = (pos, special) => {
+    if (special !== true) {
+      this.paint(pos, this.brush)
+    }
+    const tileOffset = Math.floor(client.selection / 16)
+    const id = (tileOffset * 16) + Math.floor(pos.x / 8) + (Math.floor(pos.y / 8) * 4)
+    client.select(id)
+    this.update()
+  }
+  this.whenMouseUp = (pos, special) => {
+    client.update()
+  }
+  this.paint = (pos, value) => {
+    const tileOffset = Math.floor(client.selection / 16)
+    const relPos = relativePosition(pos)
+    const relId = (client.tileEditor.page * 1024 * 16) + (relPos.tile * 64) + ((relPos.y * 8) + relPos.x) + (tileOffset * 1024)
+    if (SPRITESHEET[relId] === value) { return }
+    SPRITESHEET[relId] = value
+  }
+  this.erase = () => {
+    const tileOffset = Math.floor(client.selection / 16)
+    const pixelOffset = (client.selection % 16) * 64
+    const sheetOffset = (client.tileEditor.page * 1024 * 16) + (tileOffset * 1024) + pixelOffset
+    for (let i = 0; i < 64; i++) {
+      SPRITESHEET[sheetOffset + i] = 0
+    }
+    client.update()
+  }
+  this.drawTiles = () => {
+    for (let x = 0; x < 4; x++) {
+      for (let y = 0; y < 4; y++) {
+        const tile = (x + (y * 4))
+        this.drawTile(tile, { x, y })
+      }
+    }
+  }
+  this.drawTile = (tile, offset) => {
+    const tileOffset = Math.floor(client.selection / 16)
+    for (let x = 0; x < 8; x++) {
+      for (let y = 0; y < 8; y++) {
+        const id = (client.tileEditor.page * 1024 * 16) + (tileOffset * 1024) + (tile * 64) + (x + (y * 8))
+        if (SPRITESHEET[id] < 1) { continue }
+        const pos = { x: ((offset.x * 8) + x) * 8, y: ((offset.y * 8) + y) * 8 }
+        this.drawPixel(pos, 8, client.getColor(SPRITESHEET[id]))
+      }
+    }
+  }
+  this.drawGuides = () => {
+    if (client.guides !== true || client.selection === null) { return }
+    const rect = { x: (client.selection % 4) * 64, y: (Math.floor(client.selection / 4) % 4) * 64, w: 64, h: 64 }
+    this.drawRect(rect, client.theme.active.b_inv)
+  }
+  this.selectColor = (id) => {
+    this._color1Button.className = id === 0 ? 'active' : ''
+    this._color2Button.className = id === 1 ? 'active' : ''
+    this._color3Button.className = id === 2 ? 'active' : ''
+    this._color4Button.className = id === 3 ? 'active' : ''
+    this.brush = id
+  }
+  function relativePosition (pos) {
+    const offset = { x: pos.x % 8, y: pos.y % 8 }
+    const tile = Math.floor(pos.x / 8) + (Math.floor(pos.y / 8) * 4)
+    return { x: offset.x, y: offset.y, tile: tile }
+  }
+}
+'use strict'
+function TileEditor (screen = { w: 16, h: 16 }) {
+  Editor.call(this, 1)
+  this.page = 0
+  this._wrapper.id = 'tile_editor'
+  this._page1Button = document.createElement('a')
+  this._page2Button = document.createElement('a')
+  this._importButton = document.createElement('a')
+  this._exportButton = document.createElement('a')
+  this.installInterface = (host) => {
+    this._page1Button.innerHTML = 'p1'
+    this._page2Button.innerHTML = 'p2'
+    this._exportButton.innerHTML = '.chr'
+    host.appendChild(this._page1Button)
+    host.appendChild(this._page2Button)
+    host.appendChild(this._exportButton)
+    host.appendChild(this._importButton)
+    this._page1Button.onclick = (e) => { this.selectPage(0) }
+    this._page2Button.onclick = (e) => { this.selectPage(1) }
+    this.selectPage(0)
+    this._importButton.onclick = this.import
+    this._exportButton.onclick = this.export
+  }
+  this.whenMouseDown = (pos) => {
+    client.select(this.posToId(pos))
+    this.update()
+    client.spriteEditor.update()
+  }
+  this.whenMouseMove = (pos) => {
+    client.select(this.posToId(pos))
+    this.update()
+    client.spriteEditor.update()
+  }
+  this.whenMouseUp = (pos) => {
+    client.update()
+  }
+  this.erase = () => {
+    const sheetOffset = (Math.floor(client.selection / 16) * 1024) + (this.page * 1024 * 16)
+    for (let i = 0; i < 1024; i++) {
+      SPRITESHEET[sheetOffset + i] = 0
+    }
+    client.update()
+  }
+  this.drawTiles = () => {
+    for (let x = 0; x < 4; x++) {
+      for (let y = 0; y < 4; y++) {
+        const id = ((x + (y * 4)) * 4 * 16)
+        const pos = { x: x * 8 * 8, y: y * 8 * 8 }
+        this.drawCluster(id, pos)
+      }
+    }
+  }
+  this.drawCluster = (group, offset) => {
+    for (let x = 0; x < 4; x++) {
+      for (let y = 0; y < 4; y++) {
+        const id = group + ((x + (y * 4)) * 4)
+        const pos = { x: offset.x + (x * 2 * 8), y: offset.y + (y * 2 * 8) }
+        this.drawTile(id, pos)
+      }
+    }
+  }
+  this.drawTile = (cluster, offset) => {
+    for (let x = 0; x < 8; x++) {
+      for (let y = 0; y < 8; y++) {
+        const id = (cluster * 16) + (x + (y * 8)) + (this.page * 256 * 64)
+        if (SPRITESHEET[id] < 1) { continue }
+        const pos = { x: offset.x + (x * 2), y: offset.y + (y * 2) }
+        this.drawPixel(pos, 2, client.getColor(SPRITESHEET[id]))
+      }
+    }
+  }
+  this.drawGuides = () => {
+    if (client.guides !== true || client.selection === null) { return }
+    const blockId = Math.floor(client.selection / 16)
+    const blockRect = { x: (blockId % 4) * 64, y: Math.floor(blockId / 4) * 64, w: 64, h: 64 }
+    this.drawRect(blockRect, client.theme.active.b_inv)
+    const tileRect = { x: blockRect.x + (client.selection % 4) * 16, y: blockRect.y + (Math.floor(client.selection / 4) * 16) % 64, w: 16, h: 16 }
+    this.drawRect(tileRect, client.theme.active.b_inv)
+  }
+  this.open = (file) => {
+    if (!file) { return }
+    const start = 0
+    const stop = file.size - 1
+    const reader = new FileReader()
+    reader.onloadend = (e) => {
+      if (e.target.readyState === FileReader.DONE) {
+        this.parse(new Uint8Array(e.target.result))
+      }
+    }
+    const blob = file.slice(start, stop + 1)
+    reader.readAsArrayBuffer(blob)
+  }
+  this.import = () => {
+    client.source.open('chr', this.open)
+  }
+  this.export = () => {
+    const byteBuffer = []
+    for (let i = 0; i < 512; i++) {
+      byteBuffer.push(tuples2bin(tile2Tuples(this.getTile(i))))
+    }
+    const byteArray = new Uint8Array(512 * 16)
+    for (let i = 0; i < 512; i++) {
+      for (let b = 0; b < 16; b++) {
+        const id = b + (i * 16)
+        byteArray[id] = byteBuffer[i][b]
+      }
+    }
+    download('sprite.chr', byteArray, 'octect/stream')
+  }
+  this.parse = (byteArray) => {
+    let id = 0
+    for (let b = 0; b < byteArray.length; b += 16) {
+      for (let i = 0; i < 8; i++) {
+        for (let j = 7; j >= 0; j--) {
+          const mask = 0x1
+          const channel1 = byteArray[b + i]
+          const channel2 = byteArray[b + i + 8]
+          const color = ((channel1 >>> j) & mask) + (((channel2 >>> j) & mask) << 1)
+          SPRITESHEET[id] = color
+          id++
+        }
+      }
+    }
+    client.update()
+  }
+  this.selectPage = (id) => {
+    this._page1Button.className = id === 0 ? 'active' : ''
+    this._page2Button.className = id === 1 ? 'active' : ''
+    this.page = id
+    client.update()
+  }
+  this.getTile = (id) => {
+    return SPRITESHEET.slice(id * 64, (id * 64) + 64)
+  }
+  function download (filename, byteArray, type) {
+    const blob = new Blob([byteArray], { type: type })
+    const url = type === 'octect/stream' ? window.URL.createObjectURL(blob) : byteArray
+    const pom = document.createElement('a')
+    pom.setAttribute('href', url)
+    pom.setAttribute('download', filename)
+    if (document.createEvent) {
+      const event = document.createEvent('MouseEvents')
+      event.initEvent('click', true, true)
+      pom.dispatchEvent(event)
+    } else {
+      pom.click()
+    }
+  }
+}
+      const client = new Client()
+      client.install(document.body)
+      window.addEventListener('load', () => { 
+        client.start()
       })
-
-      xhr.send()
-    })
     </script>
-</body>
+    <style>
+* { margin:0;padding:0;border:0;outline:0;text-decoration:none;font-weight:inherit;font-style:inherit;color:inherit;font-size:100%;font-family:inherit;vertical-align:baseline;list-style:none;border-collapse:collapse;border-spacing:0; -webkit-font-smoothing: antialiased;-moz-osx-font-smoothing: grayscale; }
+body { padding: 35px 15px; margin:0px 30px; background:#000; color:white; overflow:hidden; -webkit-app-region: drag;}
+body > div { width:768px; position: relative; height:512px; margin:0px auto; }
+canvas { display: block; border-radius: 2px; image-rendering: pixelated; image-rendering: optimizeSpeed; -webkit-app-region: no-drag; }
+div.wrapper { position: relative; }
+div.interface { padding:0px 0px; position: absolute; bottom:0px;}
+div.interface a { text-indent: -9999px; overflow-y: hidden; display: inline-block; width:14px; height:14px; margin-right: 8px; border:1px solid black; cursor: pointer; border-radius:2px; }
+div.interface a:hover { border-color: white !important }
+div.interface a.active { border-color: white !important; }
+#sprite_editor { position: absolute; top: 0px; left:0px; }
+#sprite_editor div.interface { width: 30px;top: 0px;left: -30px; }
+#sprite_editor div.interface a:nth-child(1) { background:black; border-color:#333; }
+#sprite_editor div.interface a:nth-child(2) { background:#9b72de; }
+#sprite_editor div.interface a:nth-child(3) { background:#72dec2; }
+#sprite_editor div.interface a:nth-child(4) { background:white; }
+#tile_editor { position: absolute; top: 256px; left:0px; }
+#tile_editor div.interface { top: 0px;left: -30px;width: 30px; }
+#tile_editor div.interface a:nth-child(1) { background:#000; }
+#tile_editor div.interface a:nth-child(2) { background:#fff; }
+#tile_editor div.interface a:nth-child(3) { background-image:url(export_icon.svg); background-position: center;}
+#tile_editor div.interface a:nth-child(4) { background-image:url(import_icon.svg); background-position: center;}
+#nametable_editor { position: absolute; top: 0px; left:256px; }
+#nametable_editor div.interface { top: 0px;right: -38px;width: 30px; }
+#nametable_editor div.interface a:nth-child(1) { background-image:url(export_icon.svg); background-position: center;}
+#nametable_editor div.interface a:nth-child(2) { background-image:url(import_icon.svg); background-position: center;}
+body { background-color:var(--background) !important; }
+#sprite_editor div.interface a:nth-child(1) { background:var(--background) !important; border-color:#333; }
+#sprite_editor div.interface a:nth-child(2) { background:var(--f_high) !important; }
+#sprite_editor div.interface a:nth-child(3) { background:var(--f_med) !important; }
+#sprite_editor div.interface a:nth-child(4) { background:var(--f_low) !important; }
+#tile_editor div.interface a:nth-child(1) { background:var(--background) !important; }
+#tile_editor div.interface a:nth-child(2) { background:var(--f_inv) !important; }
+div.interface a { border-color:var(--b_low) !important; }
+div.interface a:hover { border-color: var(--f_inv) !important;}
+div.interface a.active { border-color: var(--f_inv) !important; }
+    </style>
+  </body>
 </html>
