@@ -6,7 +6,30 @@ Nasu is a spritesheet and nametable editor created to help us design and assembl
 
 The application was initially created for internal use, but was later made available as a free and open source software. 
 
-## FAQs
+Controls
+
+∷        Toggle Menubar   Tab
+∷        Open Theme       CmdOrCtrl+Shift+O
+∷        Reset Theme      CmdOrCtrl+Backspace
+File     New              CmdOrCtrl+N
+File     Import .chr      CmdOrCtrl+O
+File     Import .asm      CmdOrCtrl+Shift+L
+File     Export .chr      CmdOrCtrl+S
+File     Export .asm      CmdOrCtrl+Shift+S
+Select   Move Up          W
+Select   Move Right       D
+Select   Move Down        S
+Select   Move Left        A
+Sprite   Select Color1    1
+Sprite   Select Color2    2
+Sprite   Select Color3    3
+Sprite   Select Color4    4
+Sprite   Erase            Backspace
+Tile     Erase            Shift+Backspace
+Tile     Toggle Page      Space
+View     Toggle Guides    H
+
+FAQs
 
 A few design decisions rely on the target platform and its limitations, here are a few explanations.
 

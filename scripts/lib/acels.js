@@ -107,9 +107,9 @@ function Acels (client) {
   this.toString = () => {
     const cats = this.sort()
     let text = ''
-    for (const cat in cats) {
+    for (const cat of this.order) {
       for (const item of cats[cat]) {
-        text += item.accelerator ? `${cat}: ${item.name} | ${item.accelerator}\n` : ''
+        text += item.accelerator ? `${cat.padEnd(8,' ')} ${item.name.padEnd(16, ' ')} ${item.accelerator}\n` : ''
       }
     }
     return text.trim()
